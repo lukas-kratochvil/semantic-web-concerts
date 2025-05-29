@@ -1,0 +1,16 @@
+{
+  "name": "semantic-web-concerts",
+  "private": true,
+  "packageManager": "pnpm@9.12.1",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,md}\"",
+    "tidy": "pnpm format && pnpm lint"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3",
+    "turbo": "^2.5.3"
+  }
+}
