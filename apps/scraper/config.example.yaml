@@ -1,0 +1,6 @@
+# Ticketmaster for developers: https://developer.ticketmaster.com/
+ticketmaster:
+  # Base URL for the ticketmaster API
+  url:
+  # Get your API key here: https://developer-acct.ticketmaster.com/user/login
+  apiKey:

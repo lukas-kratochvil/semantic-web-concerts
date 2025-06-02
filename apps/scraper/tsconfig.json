@@ -10,6 +10,13 @@
     "lib": [
       "ESNext",
     ],
+    /* Custom paths mapping */
+    "baseUrl": ".",
+    "paths": {
+      "@semantic-web-concerts/shared/*": [
+        "../../packages/shared/src/*"
+      ],
+    },
     /* For NestJS app */
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
