@@ -1,0 +1,4 @@
+/**
+ * Converts an array to the union of its values.
+ */
+export type ArrayToUnion<T extends ReadonlyArray<unknown>> = T[number];
