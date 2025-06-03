@@ -8,6 +8,10 @@ dist
 # Turbo
 .turbo
 
+# Configs
+*config.*
+!*config*.example.*
+
 # IDEs and editors
 .vscode
 .idea
