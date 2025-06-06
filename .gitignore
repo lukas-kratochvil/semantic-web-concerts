@@ -9,6 +9,10 @@ dist
 .turbo
 
 # Configs
+.env
+!.env.example
+
+# Configs
 *config.*
 !*config*.example.*
 

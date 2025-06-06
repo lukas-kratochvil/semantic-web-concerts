@@ -15,6 +15,7 @@ async function bootstrap() {
 
   // Starting the app
   const port = config.get("port", { infer: true });
+  logger.log(`Scraper is running on: http://localhost:${port}`)
   await app.listen(port);
 }
 
