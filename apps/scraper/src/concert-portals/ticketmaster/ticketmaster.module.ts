@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { HttpModule } from "@nestjs/axios";
 import { ConfigModule } from "@nestjs/config";
 import { TicketmasterHttpConfigService } from "./ticketmaster-http-config.service";
+import { TicketmasterService } from "./ticketmaster.service";
 
 @Module({
   imports: [
@@ -10,5 +11,7 @@ import { TicketmasterHttpConfigService } from "./ticketmaster-http-config.servic
       useClass: TicketmasterHttpConfigService,
     }),
   ],
+  providers: [TicketmasterService],
+  exports: [TicketmasterService],
 })
 export class TicketmasterModule {}
