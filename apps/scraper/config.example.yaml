@@ -4,3 +4,8 @@ ticketmaster:
   url:
   # Get your API key here: https://developer-acct.ticketmaster.com/user/login
   apiKey:
+
+# GoOut
+goout:
+  # Base URL of the GoOut
+  url:
