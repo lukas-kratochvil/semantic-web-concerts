@@ -3,7 +3,7 @@ import type {
   HttpModuleOptions,
 } from "@nestjs/axios";
 import { Injectable } from "@nestjs/common";
-import type { ConfigService } from "@nestjs/config";
+import { ConfigService } from "@nestjs/config";
 import type { ConfigSchema } from "src/config/schema";
 
 @Injectable()
