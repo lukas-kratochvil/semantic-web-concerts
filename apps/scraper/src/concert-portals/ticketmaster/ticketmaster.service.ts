@@ -25,7 +25,7 @@ export class TicketmasterService {
         .pipe(
           catchError((error: AxiosError) => {
             this.#logger.error(error.response?.data);
-            throw Error("");
+            throw error;
           }),
         ),
     );

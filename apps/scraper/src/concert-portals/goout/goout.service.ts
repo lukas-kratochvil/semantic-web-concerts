@@ -8,12 +8,19 @@ export class GooutService {
   #logger = new Logger(GooutService.name);
   #baseUrl: string;
 
-  constructor(config: ConfigService<ConfigSchema["goout"], true>) {
-    this.#baseUrl = config.get("url");
+  constructor(config: ConfigService<ConfigSchema, true>) {
+    this.#baseUrl = config.get("goout.url", { infer: true });
   }
 
   async fetch() {
     const browser = await puppeteer.launch();
+    // load the page already customized for Czechia
+    await browser.setCookie({
+      name: "countryIso",
+      value: "cz",
+      domain: ".goout.net",
+      path: "/",
+    });
     const page = await browser.newPage();
 
     // load page and wait for a dynamic content (JS) to be loaded properly before continuing
@@ -25,26 +32,33 @@ export class GooutService {
     }
 
     // SETUP
-    // 1) check that first dropdown menu button has `innerText="Czechia"` otherwise select "Czechia"
+    // 1) deny cookies
+    await page.locator("div.goout-cookie-essentials").click();
+
+    // 2) check that first dropdown menu button has `innerText="Czechia"` otherwise select "Czechia"
     const country = '"Czechia"';
     const countryButton = await page.$(
-      `//button.filter-trigger[contains(text(), ${country})]`,
+      `::-p-xpath(//button[contains(@class, "filter-trigger") and contains(text(), ${country})])`,
     );
 
     if (!countryButton) {
       await page.locator("button.filter-trigger").click();
       await page
-        .locator(`//div.country-list//a[contains(text(), ${country})]`)
+        .locator(
+          `::-p-xpath(//div[contains(@class, "country-list")]//a[contains(text(), ${country})])`,
+        )
         .click();
     }
 
-    // 2) set the 'Concerts' category
+    // 3) set the 'Concerts' category
     await page
-      .locator('//button.filter-trigger[contains(text(), "All categories")]')
+      .locator(
+        '::-p-xpath(//button[contains(@class, filter-trigger) and contains(text(), "All categories")])',
+      )
       .click();
     await page
       .locator(
-        '//span.categoryFilterItem/a/span.d-block[contains(text(), "Concerts")]',
+        '::-p-xpath(//span[contains(@class, categoryFilterItem)]/a/span[contains(@class, d-block) and contains(text(), "Concerts")])',
       )
       .click();
 

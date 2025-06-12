@@ -8,19 +8,17 @@ import type { ConfigSchema } from "src/config/schema";
 
 @Injectable()
 export class TicketmasterHttpConfigService implements HttpModuleOptionsFactory {
-  constructor(
-    private readonly config: ConfigService<ConfigSchema["ticketmaster"], true>,
-  ) {}
+  constructor(private readonly config: ConfigService<ConfigSchema, true>) {}
 
   createHttpOptions(): HttpModuleOptions {
     return {
-      baseURL: this.config.get("url"),
+      baseURL: this.config.get("ticketmaster.url", { infer: true }),
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
       params: {
-        apikey: this.config.get("apiKey"),
+        apikey: this.config.get("ticketmaster.apiKey", { infer: true }),
       },
     };
   }
