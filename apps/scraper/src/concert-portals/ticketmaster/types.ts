@@ -1,7 +1,18 @@
 /**
  * Types converted from the ticketmaster example response.
  */
-export type TicketmasterResponse = {
+export type TicketmasterResponse = TicketmasterData | TicketmasterError;
+
+type TicketmasterError = {
+  fault: {
+    faultstring: string;
+    detail: {
+      errorcode: string;
+    };
+  };
+};
+
+type TicketmasterData = {
   _embedded: Embedded;
   _links: RootLinks;
   page: CurrentPageInfo;
@@ -48,11 +59,11 @@ export type Sales = {
 };
 
 export type Dates = {
-  access: AccessDate;
+  access?: AccessDate;
   start: StartDate;
   timezone: string;
   status: {
-    code: string;
+    code: "onsale" | "offsale" | "cancelled" | "postponed" | "rescheduled";
   };
   spanMultipleDays: boolean;
 };
@@ -66,7 +77,7 @@ export type AccessDate = {
 export type StartDate = {
   localDate: string;
   localTime: string;
-  dateTime: string;
+  dateTime?: string;
   dateTBD: boolean;
   dateTBA: boolean;
   timeTBA: boolean;
