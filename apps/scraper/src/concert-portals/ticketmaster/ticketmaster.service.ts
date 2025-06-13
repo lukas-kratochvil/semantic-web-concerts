@@ -2,7 +2,7 @@ import { HttpService } from "@nestjs/axios";
 import { Injectable, Logger } from "@nestjs/common";
 import { TicketmasterResponse } from "./types";
 import { catchError, firstValueFrom } from "rxjs";
-import type { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { Timeout } from "@nestjs/schedule";
 
 @Injectable()
@@ -13,8 +13,7 @@ export class TicketmasterService {
 
   @Timeout(3000)
   async fetch() {
-    // TODO: use `firstValueFrom()` or `lastValueFrom()`? (https://docs.nestjs.com/techniques/http-module#full-example)
-    const { data, headers } = await firstValueFrom(
+    const res = await firstValueFrom(
       this.http
         .get<TicketmasterResponse>("events.json", {
           params: {
@@ -26,12 +25,22 @@ export class TicketmasterService {
           },
         })
         .pipe(
-          catchError((error: AxiosError) => {
-            this.#logger.error(error.response?.data);
-            throw error;
-          }),
+          catchError(
+            (error: AxiosError<TicketmasterResponse>) =>
+              new Promise<AxiosError<TicketmasterResponse>>((resolve) =>
+                resolve(error),
+              ),
+          ),
         ),
     );
+
+    if (res instanceof AxiosError) {
+      this.#logger.error(res.message);
+      // TODO: what to do on error?
+      return;
+    }
+
+    const { data, headers } = res;
 
     // headers["rate-limit"]
     // headers["rate-limit-available"]
