@@ -13,7 +13,7 @@ type TicketmasterError = {
 };
 
 type TicketmasterData = {
-  _embedded: Embedded;
+  _embedded?: Embedded;
   _links: RootLinks;
   page: CurrentPageInfo;
 };

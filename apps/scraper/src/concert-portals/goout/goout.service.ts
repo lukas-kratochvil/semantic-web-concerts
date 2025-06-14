@@ -6,8 +6,8 @@ import type { ConfigSchema } from "src/config/schema";
 
 @Injectable()
 export class GooutService {
-  #logger = new Logger(GooutService.name);
-  #baseUrl: string;
+  readonly #logger = new Logger(GooutService.name);
+  readonly #baseUrl: string;
 
   constructor(config: ConfigService<ConfigSchema, true>) {
     this.#baseUrl = config.get("goout.url", { infer: true });

@@ -3,24 +3,27 @@ import { Injectable, Logger } from "@nestjs/common";
 import { TicketmasterResponse } from "./types";
 import { catchError, firstValueFrom } from "rxjs";
 import { AxiosError } from "axios";
-import { Timeout } from "@nestjs/schedule";
+import { Interval } from "@nestjs/schedule";
 
 @Injectable()
 export class TicketmasterService {
-  #logger = new Logger(TicketmasterService.name);
+  readonly #logger = new Logger(TicketmasterService.name);
+  #currentPage = 0;
 
   constructor(private readonly http: HttpService) {}
 
-  @Timeout(3000)
+  @Interval(3_000)
   async fetch() {
+    // The default quota is 5000 API calls per day and rate limitation of 5 requests per second.
+    // Deep Paging: only supports retrieving the 1000th item. i.e. (size * page < 1000).
     const res = await firstValueFrom(
       this.http
         .get<TicketmasterResponse>("events.json", {
           params: {
-            size: 3, // TODO: adjust the size
+            page: this.#currentPage, // `page` behaves like an offset, default `size` is 20 items per page
             countryCode: "cz",
             classificationName: ["music"],
-            sort: "date,name,desc",
+            sort: "date,name,asc",
             locale: "cs-CZ", // values adjusted for Czechia, f.e. URLs
           },
         })
@@ -56,6 +59,16 @@ export class TicketmasterService {
       this.#logger.error(data.fault.faultstring);
       return;
     }
+
+    this.#logger.log(data.page);
+
+    if (!data._embedded || data.page.number >= data.page.totalPages) {
+      this.#logger.log("No more events.");
+      this.#currentPage = 0;
+      return;
+    }
+
+    this.#currentPage++;
 
     // TODO: event.dates.status.code: 'onsale', 'offsale', 'cancelled', 'postponed', 'rescheduled'
     const concerts = data._embedded.events.map((event) => ({
