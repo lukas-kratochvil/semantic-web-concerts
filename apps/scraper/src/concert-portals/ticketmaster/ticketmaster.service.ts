@@ -1,9 +1,10 @@
 import { HttpService } from "@nestjs/axios";
 import { Injectable, Logger } from "@nestjs/common";
-import { TicketmasterResponse } from "./types";
+import { TicketmasterResponse } from "./ticketmaster-api.types";
 import { catchError, firstValueFrom } from "rxjs";
 import { AxiosError } from "axios";
 import { Interval } from "@nestjs/schedule";
+import type { ConcertEvent } from "../types";
 
 @Injectable()
 export class TicketmasterService {
@@ -71,17 +72,16 @@ export class TicketmasterService {
     this.#currentPage++;
 
     // TODO: event.dates.status.code: 'onsale', 'offsale', 'cancelled', 'postponed', 'rescheduled'
-    const concerts = data._embedded.events.map((event) => ({
+    const concerts = data._embedded.events.map<ConcertEvent>((event) => ({
       meta: {
         portal: "ticketmaster",
-        id: event.id,
+        eventId: event.id,
       },
       event: {
         name: event.name,
         description: "",
         artists: event._embedded.attractions.map((a) => ({
           name: a.name,
-          // country: undefined,
         })),
         genres: [
           ...new Set(
