@@ -17,6 +17,7 @@
     "@nestjs/platform-express": "^11.1.2",
     "@nestjs/schedule": "^6.0.0",
     "axios": "^1.9.0",
+    "date-fns": "^4.1.0",
     "joi": "^17.13.3",
     "js-yaml": "^4.1.0",
     "nest-winston": "^1.10.2",

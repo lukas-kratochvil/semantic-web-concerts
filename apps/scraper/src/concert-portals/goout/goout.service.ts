@@ -1,8 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Timeout } from "@nestjs/schedule";
-import puppeteer from "puppeteer";
+import puppeteer, { type Browser } from "puppeteer";
 import type { ConfigSchema } from "src/config/schema";
+import type { ConcertEvent } from "../types";
+import { parse } from "date-fns";
 
 @Injectable()
 export class GooutService {
@@ -11,6 +13,113 @@ export class GooutService {
 
   constructor(config: ConfigService<ConfigSchema, true>) {
     this.#baseUrl = config.get("goout.url", { infer: true });
+  }
+
+  async #getConcertEvent(
+    browser: Browser,
+    concertUrl: string,
+  ): Promise<ConcertEvent> {
+    const page = await browser.newPage();
+    const res = await page.goto(concertUrl);
+
+    if (!res) {
+      this.#logger.error(`No response from the concert url: ${concertUrl}.`);
+      throw new Error(`No response from the concert url: ${concertUrl}.`);
+    }
+
+    const name = await page.$eval("h1", (elem) => elem.innerText);
+
+    const artistsDivs = await page.$$(
+      "::-p-xpath(//h2[text()='Performing artists']/following-sibling::div/div[contains(@class, profile-box)]/div/div[contains(@class, content)]/div[1])",
+    );
+    const artists = (
+      await Promise.all(
+        artistsDivs.map(async (artistDiv) => ({
+          name: await artistDiv.$eval("::-p-xpath(./*[1])", (elem) =>
+            elem.textContent?.trim(),
+          ),
+          country: await artistDiv.$eval("::-p-xpath(./*[2])", (elem) =>
+            elem.textContent?.trim(),
+          ),
+        })),
+      )
+    ).filter(
+      (artist): artist is { name: string; country: string | undefined } =>
+        artist.name !== undefined,
+    );
+
+    const [datetime1, datetime2] = await page.$$eval(
+      "div.detail-header time",
+      // `dateTime` attribute of the HTML `time` element contains start datetime value even for the 'end datetime' element, so we have to extract the datetime from the text content
+      (elems) =>
+        elems.map((elem, i) => (i === 0 ? elem.dateTime : elem.innerText)),
+    );
+
+    if (!datetime1) {
+      this.#logger.error(`No start date on the concert url: ${concertUrl}.`);
+      throw new Error(`No start date on the concert url: ${concertUrl}.`);
+    }
+
+    const getEndDatetime = (value: string) => {
+      // `parse` returns an Invalid Date if the date-string cannot be parsed (Invalid Date is a Date, whose time value is NaN.)
+      const date = parse(value, "dd/MM/yyyy", new Date().setHours(0, 0, 0, 0));
+      return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
+    };
+    const startDatetime = datetime1;
+    const endDatetime = datetime2 ? getEndDatetime(datetime2) : undefined;
+
+    const genresNames = (
+      await page.$$eval(
+        "div.py-2 > div.container > div.row a > span",
+        (elems) => elems.map((elem) => elem.innerText),
+      )
+    ).filter((genreName) => genreName !== null);
+
+    const getVenueSelector = (valueName: string) =>
+      `::-p-xpath(//section[contains(@class, py-1)]//div[contains(@class, info-item)]/div/span[text()='${valueName}']/parent::div/parent::div/div[2])` as const;
+    const venueName = await page.$eval(
+      getVenueSelector("Venue"),
+      (elem) => (elem as HTMLAnchorElement).innerText,
+    );
+    const venueAddress = await page.$eval(
+      getVenueSelector("Address"),
+      (elem) => (elem as HTMLAnchorElement).innerText,
+    );
+
+    const [isOnSale, ticketsUrl] = await page.$eval(
+      ".ticket-button",
+      (elem) =>
+        [
+          elem.textContent?.trim() === "Tickets",
+          (elem as HTMLAnchorElement).href,
+        ] as const,
+    );
+
+    await page.close();
+    return {
+      meta: {
+        portal: "goout",
+        eventId: concertUrl,
+      },
+      event: {
+        name,
+        artists,
+        dateTime: {
+          start: startDatetime,
+          end: endDatetime,
+        },
+        genres: genresNames.map((genreName) => ({ name: genreName })),
+        venues: [
+          {
+            name: venueName,
+            address: venueAddress,
+            location: undefined,
+          },
+        ],
+        isOnSale,
+        ticketsUrl,
+      },
+    };
   }
 
   @Timeout(3_000)
@@ -60,39 +169,44 @@ export class GooutService {
     // 3) set the 'Concerts' category
     await page
       .locator(
-        '::-p-xpath(//button[contains(@class, filter-trigger) and contains(text(), "All categories")])',
+        "::-p-xpath(//button[contains(@class, filter-trigger) and contains(text(), 'All categories')])",
       )
       .click();
     await page
       .locator(
-        '::-p-xpath(//span[contains(@class, categoryFilterItem)]/a/span[contains(@class, d-block) and contains(text(), "Concerts")])',
+        "::-p-xpath(//span[contains(@class, categoryFilterItem)]/a/span[contains(@class, d-block) and contains(text(), 'Concerts')])",
       )
       .click();
 
     // GET LINKS
-    const linkSet = new Set<string>();
-
     while (true) {
       try {
-        const showMoreButtonText = "Show more";
-        const showMoreButtonSelector = `::-p-xpath(//div[contains(@class, d-block)]/button[contains(text(), '${showMoreButtonText}')])`;
-        await page.waitForSelector(showMoreButtonSelector, { timeout: 5_000 });
-        const showMoreButton = page.locator(showMoreButtonSelector);
+        // scroll to the "Show more" button
+        const showMoreButton = page.locator(
+          "::-p-xpath(//div[contains(@class, d-block)]/button[contains(text(), 'Show more')])",
+        );
         await showMoreButton.scroll();
-        await showMoreButton.click({ delay: 2_000 });
 
+        // get concert links
         const linksSelector = "div.event > div.info > a.title";
-        await page.waitForSelector(linksSelector, { timeout: 5_000 });
-        const newLinks = await page.$$eval(linksSelector, (links) =>
+        await page.waitForSelector(linksSelector);
+        const newUrls = await page.$$eval(linksSelector, (links) =>
           links.map((link) => link.href),
         );
 
-        if (newLinks.length === 0) {
+        if (newUrls.length === 0) {
           this.#logger.error("No new links!");
           break;
         }
 
-        newLinks.forEach((l) => linkSet.add(l));
+        // get concerts
+        newUrls.forEach(async (url) => {
+          await this.#getConcertEvent(browser, url);
+          // TODO: add data to the job-queue for further processing
+        });
+
+        // load new concerts
+        await showMoreButton.click({ delay: 2_000 });
       } catch (e) {
         this.#logger.error(e);
         break;

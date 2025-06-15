@@ -5,23 +5,26 @@ export type ConcertEvent = {
   };
   event: {
     name: string;
-    description: string;
     artists: {
       name: string;
-      // TODO: add `country`?
-      // country: string;
+      country: string | undefined;
     }[];
     genres: { name: string }[];
-    dateTime: string;
+    dateTime: {
+      start: string;
+      end: string | undefined;
+    };
     venues: {
       name: string;
       address: string;
-      location: {
-        longitude: string;
-        latitude: string;
-      };
+      location:
+        | {
+            longitude: string;
+            latitude: string;
+          }
+        | undefined;
     }[];
     ticketsUrl: string;
-    isSoldOut: boolean;
+    isOnSale: boolean;
   };
 };

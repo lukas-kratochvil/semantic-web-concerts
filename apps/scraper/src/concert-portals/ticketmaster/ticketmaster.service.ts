@@ -79,9 +79,9 @@ export class TicketmasterService {
       },
       event: {
         name: event.name,
-        description: "",
         artists: event._embedded.attractions.map((a) => ({
           name: a.name,
+          country: undefined,
         })),
         genres: [
           ...new Set(
@@ -90,7 +90,10 @@ export class TicketmasterService {
               .flat(),
           ),
         ].map((g) => ({ name: g })),
-        dateTime: event.dates.start.dateTime ?? event.dates.start.localDate, // `dateTime` not present if f.e. `event.dates.status.code === 'postponed'`
+        dateTime: {
+          start: event.dates.start.dateTime ?? event.dates.start.localDate, // `dateTime` not present if f.e. `event.dates.status.code === 'postponed'`
+          end: undefined,
+        },
         venues: event._embedded.venues.map((v) => ({
           name: v.name,
           address: v.address.line1,
@@ -101,7 +104,7 @@ export class TicketmasterService {
           url: v.url,
         })),
         ticketsUrl: event.url,
-        isSoldOut: event.dates.status.code === "offsale",
+        isOnSale: event.dates.status.code === "onsale",
       },
     }));
 
