@@ -14,6 +14,9 @@ export type ConfigSchema = {
   goout: {
     url: string;
   };
+  ticketportal: {
+    url: string;
+  };
 };
 
 export const configSchema = Joi.object<ConfigSchema, true>({
@@ -27,6 +30,9 @@ export const configSchema = Joi.object<ConfigSchema, true>({
     apiKey: Joi.string().trim().required(),
   }),
   goout: Joi.object<ConfigSchema["goout"], true>({
+    url: Joi.string().trim().uri({ scheme: "https" }).required(),
+  }),
+  ticketportal: Joi.object<ConfigSchema["ticketportal"], true>({
     url: Joi.string().trim().uri({ scheme: "https" }).required(),
   }),
 });

@@ -9,3 +9,8 @@ ticketmaster:
 goout:
   # Base URL of the GoOut
   url:
+
+# Ticketportal
+ticketportal:
+  # Base URL of the ticketportal music page
+  url:
