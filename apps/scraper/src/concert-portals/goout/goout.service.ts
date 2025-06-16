@@ -30,7 +30,7 @@ export class GooutService {
     const name = await page.$eval("h1", (elem) => elem.innerText);
 
     const artistsDivs = await page.$$(
-      "::-p-xpath(//h2[text()='Performing artists']/following-sibling::div/div[contains(@class, profile-box)]/div/div[contains(@class, content)]/div[1])",
+      "::-p-xpath(//h2[text()='Performing artists']/following-sibling::div/div[contains(@class, 'profile-box')]/div/div[contains(@class, 'content')]/div[1])",
     );
     const artists = (
       await Promise.all(
@@ -56,8 +56,8 @@ export class GooutService {
     );
 
     if (!datetime1) {
-      this.#logger.error(`No start date on the concert url: ${concertUrl}.`);
-      throw new Error(`No start date on the concert url: ${concertUrl}.`);
+      this.#logger.error(`Missing start date on the concert url: ${concertUrl}.`);
+      throw new Error(`Missing start date on the concert url: ${concertUrl}.`);
     }
 
     const getEndDatetime = (value: string) => {
@@ -76,7 +76,7 @@ export class GooutService {
     ).filter((genreName) => genreName !== null);
 
     const getVenueSelector = (valueName: string) =>
-      `::-p-xpath(//section[contains(@class, py-1)]//div[contains(@class, info-item)]/div/span[text()='${valueName}']/parent::div/parent::div/div[2])` as const;
+      `::-p-xpath(//section[contains(@class, 'py-1')]//div[contains(@class, 'info-item')]/div/span[text()='${valueName}']/parent::div/parent::div/div[2])` as const;
     const venueName = await page.$eval(
       getVenueSelector("Venue"),
       (elem) => (elem as HTMLAnchorElement).innerText,
@@ -137,7 +137,7 @@ export class GooutService {
       domain: ".goout.net",
       path: "/",
     });
-    const page = await browser.newPage();
+    const page = (await browser.pages())[0]!;
 
     // load page and wait for a dynamic content (JS) to be loaded properly before continuing
     const res = await page.goto(this.#baseUrl, { waitUntil: "networkidle2" });
@@ -154,14 +154,14 @@ export class GooutService {
     // 2) check that first dropdown menu button has `innerText="Czechia"` otherwise select "Czechia"
     const country = "Czechia";
     const countryButton = await page.$(
-      `::-p-xpath(//button[contains(@class, filter-trigger) and contains(text(), '${country}')])`,
+      `::-p-xpath(//button[contains(@class, 'filter-trigger') and contains(text(), '${country}')])`,
     );
 
     if (!countryButton) {
       await page.locator("button.filter-trigger").click();
       await page
         .locator(
-          `::-p-xpath(//div[contains(@class, country-list)]//a[contains(text(), '${country}')])`,
+          `::-p-xpath(//div[contains(@class, 'country-list')]//a[contains(text(), '${country}')])`,
         )
         .click();
     }
@@ -169,21 +169,21 @@ export class GooutService {
     // 3) set the 'Concerts' category
     await page
       .locator(
-        "::-p-xpath(//button[contains(@class, filter-trigger) and contains(text(), 'All categories')])",
+        "::-p-xpath(//button[contains(@class, 'filter-trigger') and contains(text(), 'All categories')])",
       )
       .click();
     await page
       .locator(
-        "::-p-xpath(//span[contains(@class, categoryFilterItem)]/a/span[contains(@class, d-block) and contains(text(), 'Concerts')])",
+        "::-p-xpath(//span[contains(@class, 'categoryFilterItem')]/a/span[contains(@class, 'd-block') and contains(text(), 'Concerts')])",
       )
       .click();
 
-    // GET LINKS
+    // GET CONCERTS
     while (true) {
       try {
         // scroll to the "Show more" button
         const showMoreButton = page.locator(
-          "::-p-xpath(//div[contains(@class, d-block)]/button[contains(text(), 'Show more')])",
+          "::-p-xpath(//div[contains(@class, 'd-block')]/button[contains(text(), 'Show more')])",
         );
         await showMoreButton.scroll();
 
@@ -194,15 +194,11 @@ export class GooutService {
           links.map((link) => link.href),
         );
 
-        if (newUrls.length === 0) {
-          this.#logger.error("No new links!");
-          break;
-        }
-
         // get concerts
         newUrls.forEach(async (url) => {
-          await this.#getConcertEvent(browser, url);
+          const concert = await this.#getConcertEvent(browser, url);
           // TODO: add data to the job-queue for further processing
+          this.#logger.log(concert);
         });
 
         // load new concerts
