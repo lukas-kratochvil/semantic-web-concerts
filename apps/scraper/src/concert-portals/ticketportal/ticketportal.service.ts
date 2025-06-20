@@ -18,6 +18,7 @@ export class TicketportalService {
     browser: Browser,
     concertUrl: string,
     genreName: string,
+    multipleEventDatesChecker: Set<string>,
   ): Promise<ConcertEvent[]> {
     const page = await browser.newPage();
     const res = await page.goto(concertUrl);
@@ -30,6 +31,15 @@ export class TicketportalService {
     const tickets = await page.$$(
       "::-p-xpath(.//section[@id='vstupenky']/div[contains(@id, 'vstupenka-')])",
     );
+
+    if (tickets.length > 1) {
+      if (multipleEventDatesChecker.has(concertUrl)) {
+        return [];
+      }
+
+      multipleEventDatesChecker.add(concertUrl);
+    }
+
     const concertData: Pick<
       Pick<ConcertEvent, "event">["event"],
       "name" | "dateTime" | "isOnSale" | "venues"
@@ -119,6 +129,10 @@ export class TicketportalService {
         height: 1000,
         width: 1500,
       },
+      args: [
+        // headless browsers often have different user agents that websites can detect
+        "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      ],
     });
     const page = (await browser.pages())[0]!;
 
@@ -154,6 +168,7 @@ export class TicketportalService {
       const panelBlocks = await genrePage.$$(
         "::-p-xpath(//div[contains(@class, 'panel-blok') and not(contains(@class, 'super-nove-top'))])",
       );
+      const multipleEventDatesChecker = new Set<string>();
 
       for (const panelBlock of panelBlocks) {
         if (!panelBlock) {
@@ -183,6 +198,7 @@ export class TicketportalService {
             browser,
             url,
             genreName,
+            multipleEventDatesChecker,
           );
           // TODO: add data to the job-queue for further processing
           this.#logger.log(concerts);
