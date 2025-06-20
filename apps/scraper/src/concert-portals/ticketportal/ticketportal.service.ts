@@ -28,89 +28,88 @@ export class TicketportalService {
     }
 
     const tickets = await page.$$(
-      "::-p-xpath(//section[@id='vstupenky']/div[contains(@id, 'vstupenka')])",
+      "::-p-xpath(.//section[@id='vstupenky']/div[contains(@id, 'vstupenka-')])",
     );
+    const concertData: Pick<
+      Pick<ConcertEvent, "event">["event"],
+      "name" | "dateTime" | "isOnSale" | "venues"
+    >[] = [];
 
-    return (
-      await Promise.allSettled(
-        tickets.map(async (ticket) => {
-          const name = await ticket.$eval(
-            "div.ticket-info > div.detail > div.event",
-            (elem) => elem.firstChild?.textContent?.trim(),
-          );
-          const startDate = await ticket.$eval(
-            "::-p-xpath(//div[@class='ticket-date']/div[@class='date']/div[@class='day'])",
-            (elem) => elem.getAttribute("content"),
-          );
+    for (const ticket of tickets) {
+      try {
+        const name = await ticket.$eval(
+          "div.ticket-info > div.detail > div.event",
+          (elem) => elem.firstChild?.textContent?.trim(),
+        );
+        const startDate = await ticket.$eval(
+          "::-p-xpath(.//div[contains(@class, 'ticket-date')]/div[@class='date']/div[@class='day'])",
+          (elem) => elem.getAttribute("content"),
+        );
+        const venueBlock = await ticket.$(
+          "::-p-xpath(.//div[contains(@class, 'ticket-info')]/div[@class='detail']/div[@itemprop='location'])",
+        );
 
-          const venueBlock = await ticket.$(
-            "::-p-xpath(//div[@class='ticket-info']/div[@class='detail']/div[@itemprop='location'])",
+        if (!venueBlock) {
+          this.#logger.error(
+            `Missing venue info on the concert url: ${concertUrl}.`,
           );
+          break;
+        }
 
-          if (!venueBlock) {
-            this.#logger.error(
-              `Missing venue info on the concert url: ${concertUrl}.`,
-            );
-            return null;
-          }
+        const venueName = await venueBlock.$eval("a.building > span", (elem) =>
+          elem.textContent?.trim(),
+        );
+        const venueAddress = await venueBlock.$eval(
+          "::-p-xpath(./div[@itemprop='address']//span)",
+          (elem) => elem.textContent?.trim(),
+        );
+        const soldOutBox = await ticket.$(
+          "div.ticket-info > div.status > div.status-content",
+        );
 
-          const venueName = await venueBlock.$eval(
-            "a.building > span)",
-            (elem) => elem.textContent?.trim(),
+        if (!name || !startDate || !venueName || !venueAddress) {
+          this.#logger.error(
+            `Missing event data on the concert url: ${concertUrl}.`,
           );
-          const venueAddress = await ticket.$eval(
-            "::-p-xpath(./div[@itemprop='address']//span)",
-            (elem) => elem.textContent?.trim(),
-          );
-          const soldOutBox = await ticket.$(
-            "div.ticket-info > div.status > div.status-content",
-          );
+          break;
+        }
 
-          if (!name || !startDate || !venueName || !venueAddress) {
-            this.#logger.error(
-              `Missing event data on the concert url: ${concertUrl}.`,
-            );
-            return null;
-          }
-
-          return {
-            name,
-            startDate,
-            venue: {
-              name: venueName,
-              address: venueAddress,
-            },
-            isOnSale: soldOutBox === null,
-          };
-        }),
-      )
-    )
-      .filter((res) => res.status === "fulfilled")
-      .map((res) => res.value)
-      .filter((value) => value !== null)
-      .map((eventData) => ({
-        meta: {
-          portal: "ticketportal",
-          eventId: concertUrl,
-        },
-        event: {
-          name: eventData.name,
-          artists: [{ name: eventData.name, country: undefined }],
-          genres: [{ name: genreName }],
+        concertData.push({
+          name,
           dateTime: {
-            start: eventData.startDate,
+            start: startDate,
             end: undefined,
           },
           venues: [
             {
-              ...eventData.venue,
+              name: venueName,
+              address: venueAddress,
               location: undefined,
             },
           ],
-          isOnSale: eventData.isOnSale,
-          ticketsUrl: concertUrl,
-        },
-      }));
+          isOnSale: soldOutBox === null,
+        });
+      } catch (e) {
+        this.#logger.error(`Error occurred for the url: ${concertUrl}`);
+        this.#logger.error(e);
+      }
+    }
+    await page.close();
+    return concertData.map((data) => ({
+      meta: {
+        portal: "ticketportal",
+        eventId: concertUrl,
+      },
+      event: {
+        name: data.name,
+        artists: [{ name: data.name, country: undefined }], // name of the artist can be retrieved only from the event name
+        genres: [{ name: genreName }],
+        dateTime: data.dateTime,
+        venues: data.venues,
+        isOnSale: data.isOnSale,
+        ticketsUrl: concertUrl,
+      },
+    }));
   }
 
   @Timeout(3_000)
@@ -120,7 +119,6 @@ export class TicketportalService {
         height: 1000,
         width: 1500,
       },
-      headless: false,
     });
     const page = (await browser.pages())[0]!;
 
@@ -145,12 +143,7 @@ export class TicketportalService {
       )
     ).filter((genreName) => genreName !== undefined);
 
-    genreNames.forEach(async (genreName, i) => {
-      if (i !== 0) {
-        // TODO: delete
-        return;
-      }
-
+    for (const genreName of genreNames) {
       const genrePage = await browser.newPage();
       await genrePage.goto(this.#baseUrl, { waitUntil: "networkidle2" });
       await genrePage
@@ -158,33 +151,34 @@ export class TicketportalService {
           `::-p-xpath(//nav//div[@id='filterMenu']//div[@id='filter_subkategorie']/label[contains(text(), '${genreName}')])`,
         )
         .click();
-
       const panelBlocks = await genrePage.$$(
         "::-p-xpath(//div[contains(@class, 'panel-blok') and not(contains(@class, 'super-nove-top'))])",
       );
 
-      for (i = 1; i <= panelBlocks.length; i++) {
-        const panelBlock = await genrePage.$(
-          `::-p-xpath(//div[contains(@class, 'panel-blok') and not(contains(@class, 'super-nove-top'))][${i}])`,
-        );
-
+      for (const panelBlock of panelBlocks) {
         if (!panelBlock) {
           break;
         }
 
-        const nextButton = await panelBlock.$("button#btn-load");
+        // show all concerts in this panel block
+        while (true) {
+          const nextButton = await panelBlock.$("button#btn-load");
 
-        if (nextButton) {
-          await nextButton.click();
+          if (nextButton) {
+            await nextButton.click();
+          } else {
+            break;
+          }
         }
 
+        // get all concert links from the panel block
         const newUrls = await panelBlock.$$eval(
           "div.koncert > div.thumbnail > a",
           (elems) => elems.map((elem) => elem.href),
         );
 
         // get concerts
-        newUrls.forEach(async (url) => {
+        for (const url of newUrls) {
           const concerts = await this.#getConcertEvents(
             browser,
             url,
@@ -192,10 +186,10 @@ export class TicketportalService {
           );
           // TODO: add data to the job-queue for further processing
           this.#logger.log(concerts);
-        });
+        }
       }
 
       await genrePage.close();
-    });
+    }
   }
 }
