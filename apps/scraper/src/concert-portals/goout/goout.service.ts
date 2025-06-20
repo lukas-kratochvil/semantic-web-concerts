@@ -56,7 +56,9 @@ export class GooutService {
     );
 
     if (!datetime1) {
-      this.#logger.error(`Missing start date on the concert url: ${concertUrl}.`);
+      this.#logger.error(
+        `Missing start date on the concert url: ${concertUrl}.`,
+      );
       throw new Error(`Missing start date on the concert url: ${concertUrl}.`);
     }
 
@@ -149,7 +151,7 @@ export class GooutService {
 
     // SETUP
     // 1) deny cookies
-    await page.locator("div.goout-cookie-essentials").click();
+    await page.locator("button#CybotCookiebotDialogBodyButtonDecline").click();
 
     // 2) check that first dropdown menu button has `innerText="Czechia"` otherwise select "Czechia"
     const country = "Czechia";
