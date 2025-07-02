@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Timeout } from "@nestjs/schedule";
 import puppeteer, { type Browser } from "puppeteer";
-import type { ConfigSchema } from "src/config/schema";
+import type { ConfigSchema } from "../../config/schema";
 import type { ConcertEvent } from "../types";
 import { parse } from "date-fns";
 

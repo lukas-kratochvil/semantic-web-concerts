@@ -68,6 +68,9 @@ importers:
       '@nestjs/schematics':
         specifier: ^11.0.5
         version: 11.0.5(chokidar@4.0.3)(typescript@5.8.3)
+      '@semantic-web-concerts/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@swc/cli':
         specifier: ^0.7.7
         version: 0.7.7(@swc/core@1.11.29)(chokidar@4.0.3)

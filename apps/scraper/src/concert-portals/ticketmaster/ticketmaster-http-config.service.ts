@@ -4,7 +4,7 @@ import type {
 } from "@nestjs/axios";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import type { ConfigSchema } from "src/config/schema";
+import type { ConfigSchema } from "../../config/schema";
 
 @Injectable()
 export class TicketmasterHttpConfigService implements HttpModuleOptionsFactory {
