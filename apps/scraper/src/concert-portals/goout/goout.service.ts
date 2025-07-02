@@ -15,10 +15,7 @@ export class GooutService {
     this.#baseUrl = config.get("goout.url", { infer: true });
   }
 
-  async #getConcertEvent(
-    browser: Browser,
-    concertUrl: string,
-  ): Promise<ConcertEvent> {
+  async #getConcertEvent(browser: Browser, concertUrl: string): Promise<ConcertEvent> {
     const page = await browser.newPage();
     const res = await page.goto(concertUrl);
 
@@ -30,35 +27,25 @@ export class GooutService {
     const name = await page.$eval("h1", (elem) => elem.innerText);
 
     const artistsDivs = await page.$$(
-      "::-p-xpath(//h2[text()='Performing artists']/following-sibling::div/div[contains(@class, 'profile-box')]/div/div[contains(@class, 'content')]/div[1])",
+      "::-p-xpath(//h2[text()='Performing artists']/following-sibling::div/div[contains(@class, 'profile-box')]/div/div[contains(@class, 'content')]/div[1])"
     );
     const artists = (
       await Promise.all(
         artistsDivs.map(async (artistDiv) => ({
-          name: await artistDiv.$eval("::-p-xpath(./*[1])", (elem) =>
-            elem.textContent?.trim(),
-          ),
-          country: await artistDiv.$eval("::-p-xpath(./*[2])", (elem) =>
-            elem.textContent?.trim(),
-          ),
-        })),
+          name: await artistDiv.$eval("::-p-xpath(./*[1])", (elem) => elem.textContent?.trim()),
+          country: await artistDiv.$eval("::-p-xpath(./*[2])", (elem) => elem.textContent?.trim()),
+        }))
       )
-    ).filter(
-      (artist): artist is { name: string; country: string | undefined } =>
-        artist.name !== undefined,
-    );
+    ).filter((artist): artist is { name: string; country: string | undefined } => artist.name !== undefined);
 
     const [datetime1, datetime2] = await page.$$eval(
       "div.detail-header time",
       // `dateTime` attribute of the HTML `time` element contains start datetime value even for the 'end datetime' element, so we have to extract the datetime from the text content
-      (elems) =>
-        elems.map((elem, i) => (i === 0 ? elem.dateTime : elem.innerText)),
+      (elems) => elems.map((elem, i) => (i === 0 ? elem.dateTime : elem.innerText))
     );
 
     if (!datetime1) {
-      this.#logger.error(
-        `Missing start date on the concert url: ${concertUrl}.`,
-      );
+      this.#logger.error(`Missing start date on the concert url: ${concertUrl}.`);
       throw new Error(`Missing start date on the concert url: ${concertUrl}.`);
     }
 
@@ -71,30 +58,17 @@ export class GooutService {
     const endDatetime = datetime2 ? getEndDatetime(datetime2) : undefined;
 
     const genresNames = (
-      await page.$$eval(
-        "div.py-2 > div.container > div.row a > span",
-        (elems) => elems.map((elem) => elem.innerText),
-      )
+      await page.$$eval("div.py-2 > div.container > div.row a > span", (elems) => elems.map((elem) => elem.innerText))
     ).filter((genreName) => genreName !== null);
 
     const getVenueSelector = (valueName: string) =>
       `::-p-xpath(//section[contains(@class, 'py-1')]//div[contains(@class, 'info-item')]/div/span[text()='${valueName}']/parent::div/parent::div/div[2])` as const;
-    const venueName = await page.$eval(
-      getVenueSelector("Venue"),
-      (elem) => (elem as HTMLAnchorElement).innerText,
-    );
-    const venueAddress = await page.$eval(
-      getVenueSelector("Address"),
-      (elem) => (elem as HTMLAnchorElement).innerText,
-    );
+    const venueName = await page.$eval(getVenueSelector("Venue"), (elem) => (elem as HTMLAnchorElement).innerText);
+    const venueAddress = await page.$eval(getVenueSelector("Address"), (elem) => (elem as HTMLAnchorElement).innerText);
 
     const [isOnSale, ticketsUrl] = await page.$eval(
       ".ticket-button",
-      (elem) =>
-        [
-          elem.textContent?.trim() === "Tickets",
-          (elem as HTMLAnchorElement).href,
-        ] as const,
+      (elem) => [elem.textContent?.trim() === "Tickets", (elem as HTMLAnchorElement).href] as const
     );
 
     await page.close();
@@ -156,27 +130,23 @@ export class GooutService {
     // 2) check that first dropdown menu button has `innerText="Czechia"` otherwise select "Czechia"
     const country = "Czechia";
     const countryButton = await page.$(
-      `::-p-xpath(//button[contains(@class, 'filter-trigger') and contains(text(), '${country}')])`,
+      `::-p-xpath(//button[contains(@class, 'filter-trigger') and contains(text(), '${country}')])`
     );
 
     if (!countryButton) {
       await page.locator("button.filter-trigger").click();
       await page
-        .locator(
-          `::-p-xpath(//div[contains(@class, 'country-list')]//a[contains(text(), '${country}')])`,
-        )
+        .locator(`::-p-xpath(//div[contains(@class, 'country-list')]//a[contains(text(), '${country}')])`)
         .click();
     }
 
     // 3) set the 'Concerts' category
     await page
-      .locator(
-        "::-p-xpath(//button[contains(@class, 'filter-trigger') and contains(text(), 'All categories')])",
-      )
+      .locator("::-p-xpath(//button[contains(@class, 'filter-trigger') and contains(text(), 'All categories')])")
       .click();
     await page
       .locator(
-        "::-p-xpath(//span[contains(@class, 'categoryFilterItem')]/a/span[contains(@class, 'd-block') and contains(text(), 'Concerts')])",
+        "::-p-xpath(//span[contains(@class, 'categoryFilterItem')]/a/span[contains(@class, 'd-block') and contains(text(), 'Concerts')])"
       )
       .click();
 
@@ -185,16 +155,14 @@ export class GooutService {
       try {
         // scroll to the "Show more" button
         const showMoreButton = page.locator(
-          "::-p-xpath(//div[contains(@class, 'd-block')]/button[contains(text(), 'Show more')])",
+          "::-p-xpath(//div[contains(@class, 'd-block')]/button[contains(text(), 'Show more')])"
         );
         await showMoreButton.scroll();
 
         // get concert links
         const linksSelector = "div.event > div.info > a.title";
         await page.waitForSelector(linksSelector);
-        const newUrls = await page.$$eval(linksSelector, (links) =>
-          links.map((link) => link.href),
-        );
+        const newUrls = await page.$$eval(linksSelector, (links) => links.map((link) => link.href));
 
         // get concerts
         newUrls.forEach(async (url) => {

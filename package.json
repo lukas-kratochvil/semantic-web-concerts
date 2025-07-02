@@ -4,10 +4,10 @@
   "packageManager": "pnpm@9.12.1",
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev",
+    "start:dev": "turbo run start:dev",
+    "format": "turbo run format",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,md}\"",
-    "tidy": "pnpm format && pnpm lint"
+    "tidy": "turbo run tidy"
   },
   "devDependencies": {
     "prettier": "^3.5.3",

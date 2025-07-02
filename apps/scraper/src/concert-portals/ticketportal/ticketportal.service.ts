@@ -18,7 +18,7 @@ export class TicketportalService {
     browser: Browser,
     concertUrl: string,
     genreName: string,
-    multipleEventDatesChecker: Set<string>,
+    multipleEventDatesChecker: Set<string>
   ): Promise<ConcertEvent[]> {
     const page = await browser.newPage();
     const res = await page.goto(concertUrl);
@@ -28,9 +28,7 @@ export class TicketportalService {
       throw new Error(`No response from the concert url: ${concertUrl}.`);
     }
 
-    const tickets = await page.$$(
-      "::-p-xpath(.//section[@id='vstupenky']/div[contains(@id, 'vstupenka-')])",
-    );
+    const tickets = await page.$$("::-p-xpath(.//section[@id='vstupenky']/div[contains(@id, 'vstupenka-')])");
 
     if (tickets.length > 1) {
       if (multipleEventDatesChecker.has(concertUrl)) {
@@ -40,47 +38,34 @@ export class TicketportalService {
       multipleEventDatesChecker.add(concertUrl);
     }
 
-    const concertData: Pick<
-      Pick<ConcertEvent, "event">["event"],
-      "name" | "dateTime" | "isOnSale" | "venues"
-    >[] = [];
+    const concertData: Pick<Pick<ConcertEvent, "event">["event"], "name" | "dateTime" | "isOnSale" | "venues">[] = [];
 
     for (const ticket of tickets) {
       try {
-        const name = await ticket.$eval(
-          "div.ticket-info > div.detail > div.event",
-          (elem) => elem.firstChild?.textContent?.trim(),
+        const name = await ticket.$eval("div.ticket-info > div.detail > div.event", (elem) =>
+          elem.firstChild?.textContent?.trim()
         );
         const startDate = await ticket.$eval(
           "::-p-xpath(.//div[contains(@class, 'ticket-date')]/div[@class='date']/div[@class='day'])",
-          (elem) => elem.getAttribute("content"),
+          (elem) => elem.getAttribute("content")
         );
         const venueBlock = await ticket.$(
-          "::-p-xpath(.//div[contains(@class, 'ticket-info')]/div[@class='detail']/div[@itemprop='location'])",
+          "::-p-xpath(.//div[contains(@class, 'ticket-info')]/div[@class='detail']/div[@itemprop='location'])"
         );
 
         if (!venueBlock) {
-          this.#logger.error(
-            `Missing venue info on the concert url: ${concertUrl}.`,
-          );
+          this.#logger.error(`Missing venue info on the concert url: ${concertUrl}.`);
           break;
         }
 
-        const venueName = await venueBlock.$eval("a.building > span", (elem) =>
-          elem.textContent?.trim(),
+        const venueName = await venueBlock.$eval("a.building > span", (elem) => elem.textContent?.trim());
+        const venueAddress = await venueBlock.$eval("::-p-xpath(./div[@itemprop='address']//span)", (elem) =>
+          elem.textContent?.trim()
         );
-        const venueAddress = await venueBlock.$eval(
-          "::-p-xpath(./div[@itemprop='address']//span)",
-          (elem) => elem.textContent?.trim(),
-        );
-        const soldOutBox = await ticket.$(
-          "div.ticket-info > div.status > div.status-content",
-        );
+        const soldOutBox = await ticket.$("div.ticket-info > div.status > div.status-content");
 
         if (!name || !startDate || !venueName || !venueAddress) {
-          this.#logger.error(
-            `Missing event data on the concert url: ${concertUrl}.`,
-          );
+          this.#logger.error(`Missing event data on the concert url: ${concertUrl}.`);
           break;
         }
 
@@ -151,9 +136,8 @@ export class TicketportalService {
 
     // GET CONCERTS
     const genreNames = (
-      await page.$$eval(
-        "::-p-xpath(//nav//div[@id='filterMenu']//div[@id='filter_subkategorie']/label)",
-        (elems) => elems.map((elem) => elem.textContent?.trim()),
+      await page.$$eval("::-p-xpath(//nav//div[@id='filterMenu']//div[@id='filter_subkategorie']/label)", (elems) =>
+        elems.map((elem) => elem.textContent?.trim())
       )
     ).filter((genreName) => genreName !== undefined);
 
@@ -162,11 +146,11 @@ export class TicketportalService {
       await genrePage.goto(this.#baseUrl, { waitUntil: "networkidle2" });
       await genrePage
         .locator(
-          `::-p-xpath(//nav//div[@id='filterMenu']//div[@id='filter_subkategorie']/label[contains(text(), '${genreName}')])`,
+          `::-p-xpath(//nav//div[@id='filterMenu']//div[@id='filter_subkategorie']/label[contains(text(), '${genreName}')])`
         )
         .click();
       const panelBlocks = await genrePage.$$(
-        "::-p-xpath(//div[contains(@class, 'panel-blok') and not(contains(@class, 'super-nove-top'))])",
+        "::-p-xpath(//div[contains(@class, 'panel-blok') and not(contains(@class, 'super-nove-top'))])"
       );
       const multipleEventDatesChecker = new Set<string>();
 
@@ -187,19 +171,13 @@ export class TicketportalService {
         }
 
         // get all concert links from the panel block
-        const newUrls = await panelBlock.$$eval(
-          "div.koncert > div.thumbnail > a",
-          (elems) => elems.map((elem) => elem.href),
+        const newUrls = await panelBlock.$$eval("div.koncert > div.thumbnail > a", (elems) =>
+          elems.map((elem) => elem.href)
         );
 
         // get concerts
         for (const url of newUrls) {
-          const concerts = await this.#getConcertEvents(
-            browser,
-            url,
-            genreName,
-            multipleEventDatesChecker,
-          );
+          const concerts = await this.#getConcertEvents(browser, url, genreName, multipleEventDatesChecker);
           // TODO: add data to the job-queue for further processing
           this.#logger.log(concerts);
         }

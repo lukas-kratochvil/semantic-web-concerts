@@ -8,7 +8,9 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "lint": "eslint --fix \"src/**/*.ts\""
+    "lint": "eslint --fix \"src/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.{js,ts}\"",
+    "tidy": "pnpm format && pnpm lint"
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.0",

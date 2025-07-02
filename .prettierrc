@@ -1,0 +1,8 @@
+{
+  "endOfLine": "lf",
+  "bracketSameLine": false,
+  "printWidth": 120,
+  "singleAttributePerLine": true,
+  "trailingComma": "es5",
+  "tabWidth": 2
+}

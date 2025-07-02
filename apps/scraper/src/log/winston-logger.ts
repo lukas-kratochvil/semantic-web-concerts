@@ -1,17 +1,10 @@
 import { LoggerService } from "@nestjs/common";
-import {
-  utilities as nestWinstonModuleUtilities,
-  WinstonModule,
-} from "nest-winston";
+import { utilities as nestWinstonModuleUtilities, WinstonModule } from "nest-winston";
 import * as winston from "winston";
 
 const defaultFileTransportOptions: winston.transports.FileTransportOptions = {
   dirname: "logs",
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.ms(),
-    winston.format.prettyPrint(),
-  ),
+  format: winston.format.combine(winston.format.timestamp(), winston.format.ms(), winston.format.prettyPrint()),
 };
 
 export const createWinstonLogger = (appName: string): LoggerService => {
@@ -34,7 +27,7 @@ export const createWinstonLogger = (appName: string): LoggerService => {
           nestWinstonModuleUtilities.format.nestLike(appName, {
             colors: true,
             prettyPrint: true,
-          }),
+          })
         ),
       }),
     ],
