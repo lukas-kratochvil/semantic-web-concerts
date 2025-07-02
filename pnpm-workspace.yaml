@@ -1,3 +1,6 @@
+# Used by PNPM to recognize a monorepo (instead of using `workspaces` field in the package.json).
+#   - running `pnpm install` at the root will link workspace packages automatically
+#   - we can also make use of `pnpm --filter`
 packages:
   - "apps/*"
   - "packages/*"
