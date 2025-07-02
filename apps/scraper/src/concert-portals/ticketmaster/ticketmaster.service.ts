@@ -1,9 +1,9 @@
 import { HttpService } from "@nestjs/axios";
 import { Injectable, Logger } from "@nestjs/common";
 import { Interval } from "@nestjs/schedule";
+import type { ConcertEvent } from "@semantic-web-concerts/shared/src/model/concert-event";
 import { AxiosError } from "axios";
 import { catchError, firstValueFrom } from "rxjs";
-import type { ConcertEvent } from "../types";
 import { TicketmasterResponse } from "./ticketmaster-api.types";
 
 @Injectable()

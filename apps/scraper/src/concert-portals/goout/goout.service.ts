@@ -1,10 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Timeout } from "@nestjs/schedule";
+import type { ConcertEvent } from "@semantic-web-concerts/shared/src/model/concert-event";
 import { parse } from "date-fns";
 import { type Browser, launch } from "puppeteer";
 import type { ConfigSchema } from "../../config/schema";
-import type { ConcertEvent } from "../types";
 
 @Injectable()
 export class GooutService {
