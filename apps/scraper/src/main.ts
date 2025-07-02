@@ -1,8 +1,8 @@
-import { NestFactory } from "@nestjs/core";
-import { AppModule } from "./app.module";
-import type { NestExpressApplication } from "@nestjs/platform-express";
-import type { ConfigSchema } from "./config/schema";
 import { ConfigService } from "@nestjs/config";
+import { NestFactory } from "@nestjs/core";
+import type { NestExpressApplication } from "@nestjs/platform-express";
+import { AppModule } from "./app.module";
+import type { ConfigSchema } from "./config/schema";
 import { createWinstonLogger } from "./log/winston-logger";
 
 async function bootstrap() {
@@ -19,4 +19,4 @@ async function bootstrap() {
   await app.listen(port);
 }
 
-bootstrap();
+void bootstrap();

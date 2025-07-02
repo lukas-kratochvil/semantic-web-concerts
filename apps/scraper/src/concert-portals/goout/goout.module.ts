@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
-import { GooutService } from "./goout.service";
 import { ConfigModule } from "@nestjs/config";
+import { GooutService } from "./goout.service";
 
 @Module({
   imports: [ConfigModule],

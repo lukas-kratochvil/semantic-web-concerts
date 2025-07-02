@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Timeout } from "@nestjs/schedule";
-import puppeteer, { type Browser } from "puppeteer";
+import { type Browser, launch } from "puppeteer";
 import type { ConfigSchema } from "../../config/schema";
 import type { ConcertEvent } from "../types";
 
@@ -124,7 +124,7 @@ export class TicketportalService {
 
   @Timeout(3_000)
   async fetch() {
-    const browser = await puppeteer.launch({
+    const browser = await launch({
       defaultViewport: {
         height: 1000,
         width: 1500,

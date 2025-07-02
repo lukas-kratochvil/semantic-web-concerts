@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
-import { TicketportalService } from "./ticketportal.service";
 import { ConfigModule } from "@nestjs/config";
+import { TicketportalService } from "./ticketportal.service";
 
 @Module({
   imports: [ConfigModule],

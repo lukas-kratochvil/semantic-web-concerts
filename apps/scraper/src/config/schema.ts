@@ -1,5 +1,5 @@
-import Joi from "joi";
 import type { ArrayToUnion } from "@semantic-web-concerts/shared/src/utils";
+import Joi from "joi";
 
 const ALLOWED_NODE_ENVS = ["development", "production"] as const;
 type NodeEnv = ArrayToUnion<typeof ALLOWED_NODE_ENVS>;
