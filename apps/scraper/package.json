@@ -35,7 +35,6 @@
     "@swc/core": "^1.11.29",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.15.29",
-    "globals": "^16.3.0",
     "typescript": "^5.8.3"
   }
 }
