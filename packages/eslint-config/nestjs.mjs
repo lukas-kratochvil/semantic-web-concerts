@@ -18,8 +18,6 @@ export default defineConfig(
       },
     },
     rules: {
-      // "@typescript-eslint/consistent-indexed-object-style": "off", // TODO: errors when linting the 'backend' app (just delete this line after correction)
-      // "@typescript-eslint/no-unused-vars": "off", // TODO: errors when linting the 'backend' app (just delete this line after correction)
       "@darraghor/nestjs-typed/injectable-should-be-provided": ["warn", {
         src: ["src/**/*.ts"],
         filterFromPaths: [".spec.", ".test."],
