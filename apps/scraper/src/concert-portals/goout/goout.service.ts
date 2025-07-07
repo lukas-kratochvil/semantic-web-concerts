@@ -1,17 +1,23 @@
+import { InjectQueue } from "@nestjs/bullmq";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Timeout } from "@nestjs/schedule";
 import type { ConcertEvent } from "@semantic-web-concerts/shared/src/model/concert-event";
+import { Queue } from "bullmq";
 import { parse } from "date-fns";
 import { type Browser, launch } from "puppeteer";
 import type { ConfigSchema } from "../../config/schema";
+import { CONCERT_EVENTS_QUEUE } from "../../utils/queue";
 
 @Injectable()
 export class GooutService {
   readonly #logger = new Logger(GooutService.name);
   readonly #baseUrl: string;
 
-  constructor(config: ConfigService<ConfigSchema, true>) {
+  constructor(
+    @InjectQueue(CONCERT_EVENTS_QUEUE) private readonly concertEventsQueue: Queue<ConcertEvent>,
+    config: ConfigService<ConfigSchema, true>
+  ) {
     this.#baseUrl = config.get("goout.url", { infer: true });
   }
 
@@ -164,11 +170,10 @@ export class GooutService {
         await page.waitForSelector(linksSelector);
         const newUrls = await page.$$eval(linksSelector, (links) => links.map((link) => link.href));
 
-        // get concerts
+        // extract concert data and add it to the queue
         newUrls.forEach(async (url) => {
           const concert = await this.#getConcertEvent(browser, url);
-          // TODO: add data to the job-queue for further processing
-          this.#logger.log(concert);
+          await this.concertEventsQueue.add("goout", concert);
         });
 
         // load new concerts

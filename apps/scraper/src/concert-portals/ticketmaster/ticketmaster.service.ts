@@ -1,9 +1,12 @@
 import { HttpService } from "@nestjs/axios";
+import { InjectQueue } from "@nestjs/bullmq";
 import { Injectable, Logger } from "@nestjs/common";
 import { Interval } from "@nestjs/schedule";
 import type { ConcertEvent } from "@semantic-web-concerts/shared/src/model/concert-event";
 import { AxiosError } from "axios";
+import type { Queue } from "bullmq";
 import { catchError, firstValueFrom } from "rxjs";
+import { CONCERT_EVENTS_QUEUE } from "../../utils/queue";
 import { TicketmasterResponse } from "./ticketmaster-api.types";
 
 @Injectable()
@@ -11,7 +14,10 @@ export class TicketmasterService {
   readonly #logger = new Logger(TicketmasterService.name);
   #currentPage = 0;
 
-  constructor(private readonly http: HttpService) {}
+  constructor(
+    @InjectQueue(CONCERT_EVENTS_QUEUE) private readonly concertEventsQueue: Queue<ConcertEvent>,
+    private readonly http: HttpService
+  ) {}
 
   @Interval(3_000)
   async fetch() {
@@ -69,6 +75,7 @@ export class TicketmasterService {
 
     this.#currentPage++;
 
+    // extract concert data
     // TODO: event.dates.status.code: 'onsale', 'offsale', 'cancelled', 'postponed', 'rescheduled'
     const concerts = data._embedded.events.map<ConcertEvent>((event) => ({
       meta: {
@@ -101,8 +108,7 @@ export class TicketmasterService {
         isOnSale: event.dates.status.code === "onsale",
       },
     }));
-
-    // TODO: add data to the job-queue for further processing
-    this.#logger.log(concerts);
+    // add data to the queue
+    await this.concertEventsQueue.addBulk(concerts.map((concert) => ({ name: "ticketmaster", data: concert })));
   }
 }

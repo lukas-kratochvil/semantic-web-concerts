@@ -14,3 +14,8 @@ goout:
 ticketportal:
   # Base URL of the ticketportal music page
   url:
+
+# Redis cache
+redis:
+  host:
+  post:

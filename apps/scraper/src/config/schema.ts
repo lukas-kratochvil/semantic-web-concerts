@@ -17,6 +17,10 @@ export type ConfigSchema = {
   ticketportal: {
     url: string;
   };
+  redis: {
+    host: string;
+    port: number;
+  };
 };
 
 export const configSchema = Joi.object<ConfigSchema, true>({
@@ -34,5 +38,9 @@ export const configSchema = Joi.object<ConfigSchema, true>({
   }),
   ticketportal: Joi.object<ConfigSchema["ticketportal"], true>({
     url: Joi.string().trim().uri({ scheme: "https" }).required(),
+  }),
+  redis: Joi.object<ConfigSchema["redis"], true>({
+    host: Joi.string().trim().required(),
+    port: Joi.number().port().required(),
   }),
 });

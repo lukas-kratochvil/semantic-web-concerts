@@ -1,16 +1,22 @@
+import { InjectQueue } from "@nestjs/bullmq";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Timeout } from "@nestjs/schedule";
 import type { ConcertEvent } from "@semantic-web-concerts/shared/src/model/concert-event";
+import type { Queue } from "bullmq";
 import { type Browser, launch } from "puppeteer";
 import type { ConfigSchema } from "../../config/schema";
+import { CONCERT_EVENTS_QUEUE } from "../../utils/queue";
 
 @Injectable()
 export class TicketportalService {
   readonly #logger = new Logger(TicketportalService.name);
   readonly #baseUrl: string;
 
-  constructor(config: ConfigService<ConfigSchema, true>) {
+  constructor(
+    @InjectQueue(CONCERT_EVENTS_QUEUE) private readonly concertEventsQueue: Queue<ConcertEvent>,
+    config: ConfigService<ConfigSchema, true>
+  ) {
     this.#baseUrl = config.get("ticketportal.url", { infer: true });
   }
 
@@ -175,11 +181,10 @@ export class TicketportalService {
           elems.map((elem) => elem.href)
         );
 
-        // get concerts
+        // extract concert data and add it to the queue
         for (const url of newUrls) {
           const concerts = await this.#getConcertEvents(browser, url, genreName, multipleEventDatesChecker);
-          // TODO: add data to the job-queue for further processing
-          this.#logger.log(concerts);
+          await this.concertEventsQueue.addBulk(concerts.map((concert) => ({ name: "ticketportal", data: concert })));
         }
       }
 
