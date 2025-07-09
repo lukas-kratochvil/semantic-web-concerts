@@ -113,6 +113,7 @@ export class TicketportalService {
     }));
   }
 
+  // TODO: correct Cron period time
   @Timeout(3_000)
   async fetch() {
     const browser = await launch({

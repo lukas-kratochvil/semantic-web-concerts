@@ -18,6 +18,8 @@ export class TicketmasterService {
     private readonly http: HttpService
   ) {}
 
+  // TODO: correct Cron period time
+  // TODO: handle Ticketmaster API request limits
   @Interval(3_000)
   async fetch() {
     // The default quota is 5000 API calls per day and rate limitation of 5 requests per second.
