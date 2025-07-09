@@ -2,12 +2,12 @@ import { BullModule } from "@nestjs/bullmq";
 import { Logger, Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { ScheduleModule } from "@nestjs/schedule";
+import { ConcertEventsQueue } from "@semantic-web-concerts/shared";
 import { GooutModule } from "./concert-portals/goout/goout.module";
 import { TicketmasterModule } from "./concert-portals/ticketmaster/ticketmaster.module";
 import { TicketportalModule } from "./concert-portals/ticketportal/ticketportal.module";
 import loadConfig from "./config/loader";
 import type { ConfigSchema } from "./config/schema";
-import { CONCERT_EVENTS_QUEUE } from "./utils/queue";
 
 @Module({
   imports: [
@@ -24,7 +24,7 @@ import { CONCERT_EVENTS_QUEUE } from "./utils/queue";
         },
       }),
     }),
-    BullModule.registerQueue({ name: CONCERT_EVENTS_QUEUE }),
+    BullModule.registerQueue({ name: ConcertEventsQueue.name }),
     ScheduleModule.forRoot(),
     GooutModule,
     TicketmasterModule,

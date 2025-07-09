@@ -40,6 +40,9 @@ importers:
       '@nestjs/schedule':
         specifier: ^6.0.0
         version: 6.0.0(@nestjs/common@11.1.2(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.2)
+      '@semantic-web-concerts/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       axios:
         specifier: ^1.9.0
         version: 1.9.0
@@ -77,9 +80,6 @@ importers:
       '@semantic-web-concerts/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
-      '@semantic-web-concerts/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
       '@swc/cli':
         specifier: ^0.7.7
         version: 0.7.7(@swc/core@1.11.29)(chokidar@4.0.3)

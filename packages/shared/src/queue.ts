@@ -1,3 +1,15 @@
+/**
+ * Concert events queue metadata.
+ */
+export const ConcertEventsQueue = {
+  name: "concert-events",
+  jobs: {
+    goout: "goout",
+    ticketmaster: "ticketmaster",
+    ticketportal: "ticketportal",
+  },
+} as const;
+
 type Artist = {
   name: string;
   country: string | undefined;
@@ -19,9 +31,12 @@ type Venue = {
   // url: string;
 };
 
-export type ConcertEvent = {
+/**
+ * Concert event queue job data.
+ */
+export type ConcertEventJob = {
   meta: {
-    portal: "ticketmaster" | "goout" | "ticketportal";
+    portal: keyof typeof ConcertEventsQueue["jobs"];
     eventId: string;
   };
   event: {
