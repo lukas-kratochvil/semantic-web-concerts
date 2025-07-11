@@ -1,0 +1,38 @@
+{
+  "name": "handler",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "build": "nest build",
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/main",
+    "lint": "eslint --fix \"src/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.{js,ts}\"",
+    "tidy": "pnpm format && pnpm lint"
+  },
+  "dependencies": {
+    "@nestjs/bullmq": "^11.0.2",
+    "@nestjs/common": "^11.1.2",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/core": "^11.1.2",
+    "@nestjs/platform-express": "^11.1.2",
+    "@semantic-web-concerts/shared": "workspace:*",
+    "bullmq": "^5.56.1",
+    "joi": "^17.13.3",
+    "js-yaml": "^4.1.0",
+    "nest-winston": "^1.10.2",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.7",
+    "@nestjs/schematics": "^11.0.5",
+    "@semantic-web-concerts/eslint-config": "workspace:*",
+    "@swc/cli": "^0.7.7",
+    "@swc/core": "^1.11.29",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.15.29",
+    "typescript": "^5.8.3"
+  }
+}

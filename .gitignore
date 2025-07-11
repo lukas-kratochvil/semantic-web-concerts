@@ -13,8 +13,8 @@ dist
 !.env.example
 
 # Configs
-*config.yaml
-*config.json
+config.yaml
+config.json
 !*config*.example.*
 
 # IDEs and editors

@@ -17,6 +17,67 @@ importers:
 
   apps/api: {}
 
+  apps/handler:
+    dependencies:
+      '@nestjs/bullmq':
+        specifier: ^11.0.2
+        version: 11.0.2(@nestjs/common@11.1.2(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.2)(bullmq@5.56.1)
+      '@nestjs/common':
+        specifier: ^11.1.2
+        version: 11.1.2(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/config':
+        specifier: ^4.0.2
+        version: 4.0.2(@nestjs/common@11.1.2(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(rxjs@7.8.2)
+      '@nestjs/core':
+        specifier: ^11.1.2
+        version: 11.1.2(@nestjs/common@11.1.2(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/platform-express':
+        specifier: ^11.1.2
+        version: 11.1.2(@nestjs/common@11.1.2(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.2)
+      '@semantic-web-concerts/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      bullmq:
+        specifier: ^5.56.1
+        version: 5.56.1
+      joi:
+        specifier: ^17.13.3
+        version: 17.13.3
+      js-yaml:
+        specifier: ^4.1.0
+        version: 4.1.0
+      nest-winston:
+        specifier: ^1.10.2
+        version: 1.10.2(@nestjs/common@11.1.2(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(winston@3.17.0)
+      winston:
+        specifier: ^3.17.0
+        version: 3.17.0
+    devDependencies:
+      '@nestjs/cli':
+        specifier: ^11.0.7
+        version: 11.0.7(@swc/cli@0.7.7(@swc/core@1.11.29)(chokidar@4.0.3))(@swc/core@1.11.29)(@types/node@22.15.29)
+      '@nestjs/schematics':
+        specifier: ^11.0.5
+        version: 11.0.5(chokidar@4.0.3)(typescript@5.8.3)
+      '@semantic-web-concerts/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@swc/cli':
+        specifier: ^0.7.7
+        version: 0.7.7(@swc/core@1.11.29)(chokidar@4.0.3)
+      '@swc/core':
+        specifier: ^1.11.29
+        version: 1.11.29
+      '@types/js-yaml':
+        specifier: ^4.0.9
+        version: 4.0.9
+      '@types/node':
+        specifier: ^22.15.29
+        version: 22.15.29
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
   apps/scraper:
     dependencies:
       '@nestjs/axios':

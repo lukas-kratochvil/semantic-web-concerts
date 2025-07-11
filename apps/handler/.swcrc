@@ -1,0 +1,28 @@
+{
+  "$schema": "https://swc.rs/schema.json",
+  "module": {
+    "type": "commonjs"
+  },
+  "jsc": {
+    "target": "es2024",
+    "keepClassNames": true,
+    "parser": {
+      "syntax": "typescript",
+      /* For NestJS app */
+      "decorators": true,
+      "dynamicImport": true
+    },
+    /* For NestJS app */
+    "transform": {
+      "legacyDecorator": true,
+      "decoratorMetadata": true
+    }
+  },
+  "sourceMaps": true, // go to the original TypeScript definition from the generated JS file
+  "minify": false,
+  "exclude": [
+    "test",
+    "^.+\\.spec\\.(j|t)s$",
+    "^.+\\.test\\.(j|t)s$"
+  ]
+}
