@@ -36,7 +36,7 @@ type Venue = {
  */
 export type ConcertEventJob = {
   meta: {
-    portal: keyof typeof ConcertEventsQueue["jobs"];
+    portal: keyof (typeof ConcertEventsQueue)["jobs"];
     eventId: string;
   };
   event: {

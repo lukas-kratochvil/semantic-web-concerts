@@ -1,8 +1,21 @@
 {
   "name": "@semantic-web-concerts/shared",
   "private": true,
-  "type": "module",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint --fix \"src/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.{js,ts}\"",
+    "tidy": "pnpm format && pnpm lint"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./dist/index.js"
+  },
+  "devDependencies": {
+    "@semantic-web-concerts/eslint-config": "workspace:*",
+    "typescript": "^5.8.3"
   }
 }
