@@ -1,9 +1,9 @@
 {
   "name": "@semantic-web-concerts/eslint-config",
   "private": true,
+  "type": "module",
   "exports": {
-    "./base": "./base.mjs",
-    "./nestjs": "./nestjs.mjs"
+    ".": "./index.js"
   },
   "devDependencies": {
     "@darraghor/eslint-plugin-nestjs-typed": "^6.7.0",

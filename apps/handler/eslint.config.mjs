@@ -1,3 +1,3 @@
-import config from "@semantic-web-concerts/eslint-config/nestjs";
+import { nestJsConfig } from "@semantic-web-concerts/eslint-config";
 
-export default config;
+export default nestJsConfig;
