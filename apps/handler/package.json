@@ -3,6 +3,7 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
+    "prebuild": "rm -rf dist",
     "build": "nest build",
     "start": "nest start",
     "start:dev": "nest start --watch",

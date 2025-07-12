@@ -1,4 +1,4 @@
 # Redis cache
 redis:
   host:
-  post:
+  port:

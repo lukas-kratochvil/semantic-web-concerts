@@ -5,7 +5,6 @@
     "outDir": "./dist",
     /* If transpiling with TypeScript (tsc) */
     "module": "commonjs",
-    "moduleResolution": "node",
     /* Library compilation */
     "declaration": true,
     "declarationMap": true,

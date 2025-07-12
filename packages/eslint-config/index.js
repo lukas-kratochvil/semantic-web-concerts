@@ -1,7 +1,7 @@
-import nestJs from "./src/nestjs.mjs";
-import shared from "./src/shared.mjs";
+import nestJsConfig from "./src/nestjs-app.mjs";
+import sharedConfig from "./src/shared-package.mjs";
 
 export {
-  nestJs as nestJsConfig,
-  shared as sharedConfig,
+  nestJsConfig,
+  sharedConfig,
 };

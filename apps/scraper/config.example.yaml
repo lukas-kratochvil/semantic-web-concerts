@@ -18,4 +18,4 @@ ticketportal:
 # Redis cache
 redis:
   host:
-  post:
+  port:
