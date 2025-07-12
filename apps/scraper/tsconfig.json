@@ -35,13 +35,6 @@
     "resolveJsonModule": true, // allows importing JSON files as modules
     "moduleDetection": "force", // every `.ts` file in a repo is treated as a module instead of as a script (`.d.ts` files are always set to `auto`)
     "removeComments": true,
-    /* Custom paths mapping */
-    "baseUrl": ".",
-    "paths": {
-      "@semantic-web-concerts/shared": [
-        "../../packages/shared/src/index.ts"
-      ],
-    },
   },
   "include": [
     "src"
