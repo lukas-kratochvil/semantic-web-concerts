@@ -1,6 +1,6 @@
 import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { Logger } from "@nestjs/common";
-import { ConcertEventsQueue, type ConcertEventJob } from "@semantic-web-concerts/shared";
+import { ConcertEventsQueue, type ConcertEventJob } from "@semantic-web-concerts/core";
 import type { Job } from "bullmq";
 
 @Processor(ConcertEventsQueue.name)

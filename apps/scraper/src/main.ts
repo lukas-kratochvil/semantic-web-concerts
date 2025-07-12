@@ -1,9 +1,9 @@
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
+import { createWinstonLogger } from "@semantic-web-concerts/core";
 import { AppModule } from "./app.module";
 import type { ConfigSchema } from "./config/schema";
-import { createWinstonLogger } from "./log/winston-logger";
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);

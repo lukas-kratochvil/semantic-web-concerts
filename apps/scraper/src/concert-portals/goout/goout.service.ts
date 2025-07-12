@@ -2,7 +2,7 @@ import { InjectQueue } from "@nestjs/bullmq";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Timeout } from "@nestjs/schedule";
-import { type ConcertEventJob, ConcertEventsQueue } from "@semantic-web-concerts/shared";
+import { type ConcertEventJob, ConcertEventsQueue } from "@semantic-web-concerts/core";
 import { Queue } from "bullmq";
 import { parse } from "date-fns";
 import { type Browser, launch } from "puppeteer";

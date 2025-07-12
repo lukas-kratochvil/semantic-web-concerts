@@ -34,6 +34,9 @@ importers:
       '@nestjs/platform-express':
         specifier: ^11.1.2
         version: 11.1.2(@nestjs/common@11.1.2(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.2)
+      '@semantic-web-concerts/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@semantic-web-concerts/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -43,15 +46,6 @@ importers:
       joi:
         specifier: ^17.13.3
         version: 17.13.3
-      js-yaml:
-        specifier: ^4.1.0
-        version: 4.1.0
-      nest-winston:
-        specifier: ^1.10.2
-        version: 1.10.2(@nestjs/common@11.1.2(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(winston@3.17.0)
-      winston:
-        specifier: ^3.17.0
-        version: 3.17.0
     devDependencies:
       '@nestjs/cli':
         specifier: ^11.0.7
@@ -68,9 +62,6 @@ importers:
       '@swc/core':
         specifier: ^1.11.29
         version: 1.11.29
-      '@types/js-yaml':
-        specifier: ^4.0.9
-        version: 4.0.9
       '@types/node':
         specifier: ^22.15.29
         version: 22.15.29
@@ -101,6 +92,9 @@ importers:
       '@nestjs/schedule':
         specifier: ^6.0.0
         version: 6.0.0(@nestjs/common@11.1.2(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.2)
+      '@semantic-web-concerts/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@semantic-web-concerts/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -116,21 +110,12 @@ importers:
       joi:
         specifier: ^17.13.3
         version: 17.13.3
-      js-yaml:
-        specifier: ^4.1.0
-        version: 4.1.0
-      nest-winston:
-        specifier: ^1.10.2
-        version: 1.10.2(@nestjs/common@11.1.2(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(winston@3.17.0)
       puppeteer:
         specifier: ^24.10.0
         version: 24.10.0(typescript@5.8.3)
       rxjs:
         specifier: ^7.8.2
         version: 7.8.2
-      winston:
-        specifier: ^3.17.0
-        version: 3.17.0
     devDependencies:
       '@nestjs/cli':
         specifier: ^11.0.7
@@ -147,9 +132,6 @@ importers:
       '@swc/core':
         specifier: ^1.11.29
         version: 1.11.29
-      '@types/js-yaml':
-        specifier: ^4.0.9
-        version: 4.0.9
       '@types/node':
         specifier: ^22.15.29
         version: 22.15.29
@@ -158,6 +140,37 @@ importers:
         version: 5.8.3
 
   apps/web: {}
+
+  packages/core:
+    dependencies:
+      '@nestjs/common':
+        specifier: ^11.1.2
+        version: 11.1.2(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@semantic-web-concerts/shared':
+        specifier: workspace:*
+        version: link:../shared
+      joi:
+        specifier: ^17.13.3
+        version: 17.13.3
+      js-yaml:
+        specifier: ^4.1.0
+        version: 4.1.0
+      nest-winston:
+        specifier: ^1.10.2
+        version: 1.10.2(@nestjs/common@11.1.2(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(winston@3.17.0)
+      winston:
+        specifier: ^3.17.0
+        version: 3.17.0
+    devDependencies:
+      '@semantic-web-concerts/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@types/js-yaml':
+        specifier: ^4.0.9
+        version: 4.0.9
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
 
   packages/eslint-config:
     devDependencies:
@@ -197,6 +210,9 @@ importers:
 
   packages/shared:
     devDependencies:
+      '@semantic-web-concerts/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
       typescript:
         specifier: ^5.8.3
         version: 5.8.3

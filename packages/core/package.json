@@ -1,0 +1,33 @@
+{
+  "name": "@semantic-web-concerts/core",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "prebuild": "rm -rf dist *.tsbuildinfo",
+    "build": "tsc --project tsconfig.build.json",
+    "lint": "eslint --fix \"src/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.{js,ts}\"",
+    "tidy": "pnpm format && pnpm lint"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "devDependencies": {
+    "@semantic-web-concerts/eslint-config": "workspace:*",
+    "@types/js-yaml": "^4.0.9",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.1.2",
+    "@semantic-web-concerts/shared": "workspace:*",
+    "joi": "^17.13.3",
+    "js-yaml": "^4.1.0",
+    "nest-winston": "^1.10.2",
+    "winston": "^3.17.0"
+  }
+}

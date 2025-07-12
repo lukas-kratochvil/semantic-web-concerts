@@ -2,17 +2,19 @@ import { BullModule } from "@nestjs/bullmq";
 import { Logger, Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { ScheduleModule } from "@nestjs/schedule";
-import { ConcertEventsQueue } from "@semantic-web-concerts/shared";
+import { ConcertEventsQueue, loadYamlConfig } from "@semantic-web-concerts/core";
 import { GooutModule } from "./concert-portals/goout/goout.module";
 import { TicketmasterModule } from "./concert-portals/ticketmaster/ticketmaster.module";
 import { TicketportalModule } from "./concert-portals/ticketportal/ticketportal.module";
-import loadConfig from "./config/loader";
-import type { ConfigSchema } from "./config/schema";
+import { configSchema, type ConfigSchema } from "./config/schema";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      load: [loadConfig],
+      load: [
+        () =>
+          loadYamlConfig("config.yaml", configSchema, { nodeEnv: process.env["NODE_ENV"], port: process.env["PORT"] }),
+      ],
     }),
     BullModule.forRootAsync({
       imports: [ConfigModule],

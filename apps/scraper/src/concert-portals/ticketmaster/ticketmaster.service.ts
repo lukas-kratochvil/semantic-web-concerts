@@ -2,7 +2,7 @@ import { HttpService } from "@nestjs/axios";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Injectable, Logger } from "@nestjs/common";
 import { Interval } from "@nestjs/schedule";
-import { type ConcertEventJob, ConcertEventsQueue } from "@semantic-web-concerts/shared";
+import { type ConcertEventJob, ConcertEventsQueue } from "@semantic-web-concerts/core";
 import { AxiosError } from "axios";
 import type { Queue } from "bullmq";
 import { catchError, firstValueFrom } from "rxjs";
