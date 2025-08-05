@@ -2,7 +2,11 @@ import { InjectQueue } from "@nestjs/bullmq";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Timeout } from "@nestjs/schedule";
-import { type ConcertEventJob, ConcertEventsQueue } from "@semantic-web-concerts/core";
+import {
+  type ConcertEventsQueueDataType,
+  type ConcertEventsQueueNameType,
+  ConcertEventsQueue,
+} from "@semantic-web-concerts/core";
 import { Queue } from "bullmq";
 import { parse } from "date-fns";
 import { type Browser, launch } from "puppeteer";
@@ -14,13 +18,18 @@ export class GooutService {
   readonly #baseUrl: string;
 
   constructor(
-    @InjectQueue(ConcertEventsQueue.name) private readonly concertEventsQueue: Queue<ConcertEventJob>,
+    @InjectQueue(ConcertEventsQueue.name)
+    private readonly concertEventsQueue: Queue<
+      ConcertEventsQueueDataType,
+      ConcertEventsQueueDataType,
+      ConcertEventsQueueNameType
+    >,
     config: ConfigService<ConfigSchema, true>
   ) {
     this.#baseUrl = config.get("goout.url", { infer: true });
   }
 
-  async #getConcertEvent(browser: Browser, concertUrl: string): Promise<ConcertEventJob> {
+  async #getConcertEvent(browser: Browser, concertUrl: string): Promise<ConcertEventsQueueDataType> {
     const page = await browser.newPage();
     const res = await page.goto(concertUrl);
 
@@ -173,7 +182,7 @@ export class GooutService {
         // extract concert data and add it to the queue
         newUrls.forEach(async (url) => {
           const concert = await this.#getConcertEvent(browser, url);
-          await this.concertEventsQueue.add(ConcertEventsQueue.jobs.goout, concert);
+          await this.concertEventsQueue.add("goout", concert);
         });
 
         // load new concerts

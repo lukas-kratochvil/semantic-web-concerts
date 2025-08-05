@@ -32,11 +32,11 @@ type Venue = {
 };
 
 /**
- * Concert event queue job data.
+ * Concert event queue job data type.
  */
-export type ConcertEventJob = {
+export type ConcertEventsQueueDataType = {
   meta: {
-    portal: keyof (typeof ConcertEventsQueue)["jobs"];
+    portal: ConcertEventsQueueNameType;
     eventId: string;
   };
   event: {
@@ -52,3 +52,8 @@ export type ConcertEventJob = {
     isOnSale: boolean;
   };
 };
+
+/**
+ * Concert event queue job name type.
+ */
+export type ConcertEventsQueueNameType = keyof (typeof ConcertEventsQueue)["jobs"];

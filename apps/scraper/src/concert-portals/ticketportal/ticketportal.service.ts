@@ -2,7 +2,11 @@ import { InjectQueue } from "@nestjs/bullmq";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Timeout } from "@nestjs/schedule";
-import { type ConcertEventJob, ConcertEventsQueue } from "@semantic-web-concerts/core";
+import {
+  type ConcertEventsQueueDataType,
+  type ConcertEventsQueueNameType,
+  ConcertEventsQueue,
+} from "@semantic-web-concerts/core";
 import type { Queue } from "bullmq";
 import { type Browser, launch } from "puppeteer";
 import type { ConfigSchema } from "../../config/schema";
@@ -13,7 +17,12 @@ export class TicketportalService {
   readonly #baseUrl: string;
 
   constructor(
-    @InjectQueue(ConcertEventsQueue.name) private readonly concertEventsQueue: Queue<ConcertEventJob>,
+    @InjectQueue(ConcertEventsQueue.name)
+    private readonly concertEventsQueue: Queue<
+      ConcertEventsQueueDataType,
+      ConcertEventsQueueDataType,
+      ConcertEventsQueueNameType
+    >,
     config: ConfigService<ConfigSchema, true>
   ) {
     this.#baseUrl = config.get("ticketportal.url", { infer: true });
@@ -24,7 +33,7 @@ export class TicketportalService {
     concertUrl: string,
     genreName: string,
     multipleEventDatesChecker: Set<string>
-  ): Promise<ConcertEventJob[]> {
+  ): Promise<ConcertEventsQueueDataType[]> {
     const page = await browser.newPage();
     const res = await page.goto(concertUrl);
 
@@ -43,8 +52,10 @@ export class TicketportalService {
       multipleEventDatesChecker.add(concertUrl);
     }
 
-    const concertData: Pick<Pick<ConcertEventJob, "event">["event"], "name" | "dateTime" | "isOnSale" | "venues">[]
-      = [];
+    const concertData: Pick<
+      Pick<ConcertEventsQueueDataType, "event">["event"],
+      "name" | "dateTime" | "isOnSale" | "venues"
+    >[] = [];
 
     for (const ticket of tickets) {
       try {
@@ -185,9 +196,7 @@ export class TicketportalService {
         // extract concert data and add it to the queue
         for (const url of newUrls) {
           const concerts = await this.#getConcertEvents(browser, url, genreName, multipleEventDatesChecker);
-          await this.concertEventsQueue.addBulk(
-            concerts.map((concert) => ({ name: ConcertEventsQueue.jobs.ticketportal, data: concert }))
-          );
+          await this.concertEventsQueue.addBulk(concerts.map((concert) => ({ name: "ticketportal", data: concert })));
         }
       }
 
