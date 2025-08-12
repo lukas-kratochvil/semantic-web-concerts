@@ -1,4 +1,0 @@
-# Redis cache
-redis:
-  host:
-  port:

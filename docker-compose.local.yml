@@ -1,0 +1,31 @@
+services:
+  redis:
+    image: redis:alpine3.22
+
+  handler:
+    build:
+      context: .
+      dockerfile: ./apps/handler/Dockerfile
+      target: development
+    command: pnpm start:dev
+    volumes:
+      - ./config-handler.yaml:/app/apps/handler/config.yaml:ro
+      - ./logs/handler:/app/apps/handler/logs:rw
+    environment:
+      - NODE_ENV=development
+      - PORT=3040
+    restart: unless-stopped
+
+  scraper:
+    build:
+      context: .
+      dockerfile: ./apps/scraper/Dockerfile
+      target: development
+    command: pnpm start:dev
+    volumes:
+      - ./config-scraper.yaml:/app/apps/scraper/config.yaml:ro
+      - ./logs/scraper:/app/apps/scraper/logs:rw
+    environment:
+      - NODE_ENV=development
+      - PORT=3050
+    restart: unless-stopped

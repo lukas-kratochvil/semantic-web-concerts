@@ -1,0 +1,35 @@
+# Git
+**/.gitignore
+**/.gitattributes
+
+# Docs
+**/README.md
+
+# Docker files
+**/Dockerfile
+**/.dockerignore
+
+# Node modules folder
+**/node_modules/
+
+# Compiled output
+**/dist/
+
+# Configs
+**/config*.yaml
+
+# Environment variables
+**/.env*
+
+# Formatting
+**/.editorconfig
+**/.prettierrc
+
+# Turborepo
+**/.turbo/
+
+# Logs
+**/*.log
+
+# IDEs and editors
+**/.vscode/

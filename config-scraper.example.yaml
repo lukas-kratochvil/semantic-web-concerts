@@ -17,5 +17,6 @@ ticketportal:
 
 # Redis cache
 redis:
+  # name of the Redis Docker container
   host:
   port:
