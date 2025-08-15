@@ -15,6 +15,7 @@ import type { ConfigSchema } from "../../config/schema";
 export class TicketportalService {
   readonly #logger = new Logger(TicketportalService.name);
   readonly #baseUrl: string;
+  readonly #puppeteerArgs: string[];
 
   constructor(
     @InjectQueue(ConcertEventsQueue.name)
@@ -26,6 +27,9 @@ export class TicketportalService {
     config: ConfigService<ConfigSchema, true>
   ) {
     this.#baseUrl = config.get("ticketportal.url", { infer: true });
+    // Running as root without --no-sandbox is not supported. See https://crbug.com/638180.
+    this.#puppeteerArgs =
+      config.get("nodeEnv", { infer: true }) === "development" ? ["--no-sandbox", "--disable-setuid-sandbox"] : [];
   }
 
   async #getConcertEvents(
@@ -133,7 +137,10 @@ export class TicketportalService {
         width: 1500,
       },
       args: [
-        // headless browsers often have different user agents that websites can detect
+        ...this.#puppeteerArgs,
+        // The `--user-agent` arg tricks websites into thinking that headless Chromium is a normal Chrome browser.
+        // Headless browsers often have different user-agents that websites can detect,
+        // e.g: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/120.0.0.0 Safari/537.36".
         "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
       ],
     });

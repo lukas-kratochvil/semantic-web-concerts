@@ -11,12 +11,11 @@ WORKDIR /app
 #-------------------------------------------
 FROM base AS builder-base
 
-RUN apk update
-
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
 RUN corepack enable pnpm
+
 
 #-------------------------------------------
 # BUILD
@@ -58,10 +57,6 @@ RUN pnpm turbo run build
 # PRODUCTION
 #-------------------------------------------
 FROM base
-
-# Install openssl
-RUN apk update && apk upgrade
-RUN apk add --no-cache openssl
 
 # Don't run production as root.
 # Remove default Node alpine image user and create a new one.
