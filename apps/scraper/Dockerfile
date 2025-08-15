@@ -5,7 +5,7 @@ FROM node:20-bullseye AS base
 
 WORKDIR /app
 
-# Install dependencies required by Chromium (used by Puppeteer)
+# Install dependencies required by Chromium - installed by Puppeteer into the /root/.cache/puppeteer/chrome/ directory. See https://pptr.dev/troubleshooting#chrome-doesnt-launch-on-linux.
 RUN apt-get update && apt-get install -y \
   ca-certificates \
   fonts-liberation \
