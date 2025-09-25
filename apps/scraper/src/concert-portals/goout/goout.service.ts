@@ -9,7 +9,7 @@ import {
 } from "@semantic-web-concerts/core";
 import { Queue } from "bullmq";
 import { parse } from "date-fns";
-import { type Browser, launch } from "puppeteer";
+import { launch, type Page } from "puppeteer";
 import type { ConfigSchema } from "../../config/schema";
 
 @Injectable()
@@ -29,19 +29,11 @@ export class GooutService {
   ) {
     this.#baseUrl = config.get("goout.url", { infer: true });
     // Running as root without --no-sandbox is not supported. See https://crbug.com/638180.
-    this.#puppeteerArgs =
-      config.get("nodeEnv", { infer: true }) === "development" ? ["--no-sandbox", "--disable-setuid-sandbox"] : [];
+    this.#puppeteerArgs
+      = config.get("nodeEnv", { infer: true }) === "development" ? ["--no-sandbox", "--disable-setuid-sandbox"] : [];
   }
 
-  async #getConcertEvent(browser: Browser, concertUrl: string): Promise<ConcertEventsQueueDataType> {
-    const page = await browser.newPage();
-    const res = await page.goto(concertUrl);
-
-    if (!res) {
-      this.#logger.error(`No response from the concert url: ${concertUrl}.`);
-      throw new Error(`No response from the concert url: ${concertUrl}.`);
-    }
-
+  async #getConcertEvent(page: Page, concertUrl: string): Promise<ConcertEventsQueueDataType> {
     const name = await page.$eval("h1", (elem) => elem.innerText);
 
     const artistsDivs = await page.$$(
@@ -63,8 +55,7 @@ export class GooutService {
     );
 
     if (!datetime1) {
-      this.#logger.error(`Missing start date on the concert url: ${concertUrl}.`);
-      throw new Error(`Missing start date on the concert url: ${concertUrl}.`);
+      throw new Error("Missing start date.");
     }
 
     const getEndDatetime = (value: string) => {
@@ -88,8 +79,6 @@ export class GooutService {
       ".ticket-button",
       (elem) => [elem.textContent?.trim() === "Tickets", (elem as HTMLAnchorElement).href] as const
     );
-
-    await page.close();
     return {
       meta: {
         portal: "goout",
@@ -132,78 +121,93 @@ export class GooutService {
         "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
       ],
     });
-    // load the page already customized for Czechia
-    await browser.setCookie({
-      name: "countryIso",
-      value: "cz",
-      domain: ".goout.net",
-      path: "/",
-    });
-    const page = (await browser.pages())[0]!;
 
-    // load page and wait for a dynamic content (JS) to be loaded properly before continuing
-    const res = await page.goto(this.#baseUrl, { waitUntil: "networkidle2" });
+    try {
+      // load the page already customized for Czechia
+      await browser.setCookie({
+        name: "countryIso",
+        value: "cz",
+        domain: ".goout.net",
+        path: "/",
+      });
 
-    if (!res) {
-      this.#logger.error(`No response from the base url: ${this.#baseUrl}.`);
-      return;
-    }
+      const page = (await browser.pages())[0]!;
 
-    // SETUP
-    // 1) deny cookies
-    await page.locator("button#CybotCookiebotDialogBodyButtonDecline").click();
-
-    // 2) check that first dropdown menu button has `innerText="Czechia"` otherwise select "Czechia"
-    const country = "Czechia";
-    const countryButton = await page.$(
-      `::-p-xpath(//button[contains(@class, 'filter-trigger') and contains(text(), '${country}')])`
-    );
-
-    if (!countryButton) {
-      await page.locator("button.filter-trigger").click();
-      await page
-        .locator(`::-p-xpath(//div[contains(@class, 'country-list')]//a[contains(text(), '${country}')])`)
-        .click();
-    }
-
-    // 3) set the 'Concerts' category
-    await page
-      .locator("::-p-xpath(//button[contains(@class, 'filter-trigger') and contains(text(), 'All categories')])")
-      .click();
-    await page
-      .locator(
-        "::-p-xpath(//span[contains(@class, 'categoryFilterItem')]/a/span[contains(@class, 'd-block') and contains(text(), 'Concerts')])"
-      )
-      .click();
-
-    // GET CONCERTS
-    while (true) {
-      try {
-        // scroll to the "Show more" button
-        const showMoreButton = page.locator(
-          "::-p-xpath(//div[contains(@class, 'd-block')]/button[contains(text(), 'Show more')])"
-        );
-        await showMoreButton.scroll();
-
-        // get concert links
-        const linksSelector = "div.event > div.info > a.title";
-        await page.waitForSelector(linksSelector);
-        const newUrls = await page.$$eval(linksSelector, (links) => links.map((link) => link.href));
-
-        // extract concert data and add it to the queue
-        newUrls.forEach(async (url) => {
-          const concert = await this.#getConcertEvent(browser, url);
-          await this.concertEventsQueue.add("goout", concert);
-        });
-
-        // load new concerts
-        await showMoreButton.click({ delay: 2_000 });
-      } catch (e) {
-        this.#logger.error(e);
-        break;
+      // load page and wait for a dynamic content (JS) to be loaded properly before continuing
+      if (!(await page.goto(this.#baseUrl, { waitUntil: "networkidle2" }))) {
+        throw new Error(`No response from the base url: ${this.#baseUrl}.`);
       }
-    }
 
-    await browser.close();
+      // SETUP
+      // 1) deny cookies
+      await page.locator("button#CybotCookiebotDialogBodyButtonDecline").click();
+
+      // 2) check that first dropdown menu button has `innerText="Czechia"` otherwise select "Czechia"
+      const country = "Czechia";
+      const countryButton = await page.$(
+        `::-p-xpath(//button[contains(@class, 'filter-trigger') and contains(text(), '${country}')])`
+      );
+
+      if (!countryButton) {
+        await page.locator("button.filter-trigger").click();
+        await page
+          .locator(`::-p-xpath(//div[contains(@class, 'country-list')]//a[contains(text(), '${country}')])`)
+          .click();
+      }
+
+      // 3) set the 'Concerts' category
+      await page
+        .locator("::-p-xpath(//button[contains(@class, 'filter-trigger') and contains(text(), 'All categories')])")
+        .click();
+      await page
+        .locator(
+          "::-p-xpath(//span[contains(@class, 'categoryFilterItem')]/a/span[contains(@class, 'd-block') and contains(text(), 'Concerts')])"
+        )
+        .click();
+
+      // GET CONCERTS
+      while (true) {
+        try {
+          // scroll to the "Show more" button
+          const showMoreButton = page.locator(
+            "::-p-xpath(//div[contains(@class, 'd-block')]/button[contains(text(), 'Show more')])"
+          );
+          await showMoreButton.scroll();
+
+          // get concert links
+          const linksSelector = "div.event > div.info > a.title";
+          await page.waitForSelector(linksSelector);
+          const newUrls = await page.$$eval(linksSelector, (links) => links.map((link) => link.href));
+
+          // extract concert data and add it to the queue
+          newUrls.forEach(async (url) => {
+            const concertPage = await browser.newPage();
+
+            try {
+              if (!(await concertPage.goto(url))) {
+                throw new Error("Cannot navigate to the URL.");
+              }
+
+              const concert = await this.#getConcertEvent(concertPage, url);
+              await this.concertEventsQueue.add("goout", concert);
+            } catch (e) {
+              this.#logger.error("[" + url + "] - " + (e instanceof Error ? e.message : String(e)));
+            } finally {
+              await concertPage.close();
+            }
+          });
+
+          // load new concerts
+          await showMoreButton.click({ delay: 2_000 });
+        } catch (e) {
+          this.#logger.error(e instanceof Error ? e.message : e);
+          break;
+        }
+      }
+    } catch (e) {
+      this.#logger.error(e instanceof Error ? e.message : e);
+    } finally {
+      await browser.close();
+    }
   }
 }
