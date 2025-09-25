@@ -67,8 +67,7 @@ export class TicketportalService {
         );
 
         if (!venueBlock) {
-          this.#logger.error(`Missing venue info on the concert url: ${concertUrl}.`);
-          break;
+          throw new Error("[" + concertUrl + "] - Missing venue info.");
         }
 
         const venueName = await venueBlock.$eval("a.building > span", (elem) => elem.textContent?.trim());
@@ -78,8 +77,7 @@ export class TicketportalService {
         const soldOutBox = await ticket.$("div.ticket-info > div.status > div.status-content");
 
         if (!name || !startDate || !venueName || !venueAddress) {
-          this.#logger.error(`Missing event data on the concert url: ${concertUrl}.`);
-          break;
+          throw new Error("[" + concertUrl + "] - Missing event data.");
         }
 
         concertData.push({
@@ -132,9 +130,6 @@ export class TicketportalService {
         // Headless browsers often have different user-agents that websites can detect,
         // e.g: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/120.0.0.0 Safari/537.36".
         "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        "--disable-dev-shm-usage",
-        // "--disable-gpu",
-        // "--single-process",
       ],
     });
 
@@ -143,8 +138,7 @@ export class TicketportalService {
 
       // load page and wait for a dynamic content (JS) to be loaded properly before continuing
       if (!(await page.goto(this.#baseUrl, { waitUntil: "networkidle2" }))) {
-        this.#logger.error(`No response from the base url: ${this.#baseUrl}.`);
-        return;
+        throw new Error(`No response from the base url: ${this.#baseUrl}.`);
       }
 
       // SETUP
@@ -173,7 +167,6 @@ export class TicketportalService {
           const panelBlocks = await page.$$(
             "::-p-xpath(//div[contains(@class, 'panel-blok') and not(contains(@class, 'super-nove-top')) and not (contains(@class, 'donekonecna'))])"
           );
-          this.#logger.log("Genre: " + genreName);
 
           for (const panelBlock of panelBlocks) {
             // show all concerts in this panel block
@@ -187,7 +180,9 @@ export class TicketportalService {
               try {
                 await nextButton.click();
               } catch (e) {
-                this.#logger.error("Genre panel next button error: " + (e instanceof Error ? e.message : e));
+                this.#logger.error(
+                  "[" + genreName + "] - Panel next button error: " + (e instanceof Error ? e.message : e)
+                );
                 break;
               }
             }
