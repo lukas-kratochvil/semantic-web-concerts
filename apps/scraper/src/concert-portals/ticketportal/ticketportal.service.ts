@@ -8,7 +8,7 @@ import {
   ConcertEventsQueue,
 } from "@semantic-web-concerts/core";
 import type { Queue } from "bullmq";
-import { type Browser, launch } from "puppeteer";
+import { launch, type Page } from "puppeteer";
 import type { ConfigSchema } from "../../config/schema";
 
 @Injectable()
@@ -28,24 +28,16 @@ export class TicketportalService {
   ) {
     this.#baseUrl = config.get("ticketportal.url", { infer: true });
     // Running as root without --no-sandbox is not supported. See https://crbug.com/638180.
-    this.#puppeteerArgs =
-      config.get("nodeEnv", { infer: true }) === "development" ? ["--no-sandbox", "--disable-setuid-sandbox"] : [];
+    this.#puppeteerArgs
+      = config.get("nodeEnv", { infer: true }) === "development" ? ["--no-sandbox", "--disable-setuid-sandbox"] : [];
   }
 
   async #getConcertEvents(
-    browser: Browser,
+    page: Page,
     concertUrl: string,
     genreName: string,
     multipleEventDatesChecker: Set<string>
   ): Promise<ConcertEventsQueueDataType[]> {
-    const page = await browser.newPage();
-    const res = await page.goto(concertUrl);
-
-    if (!res) {
-      this.#logger.error(`No response from the concert url: ${concertUrl}.`);
-      throw new Error(`No response from the concert url: ${concertUrl}.`);
-    }
-
     const tickets = await page.$$("::-p-xpath(.//section[@id='vstupenky']/div[contains(@id, 'vstupenka-')])");
 
     if (tickets.length > 1) {
@@ -63,7 +55,7 @@ export class TicketportalService {
 
     for (const ticket of tickets) {
       try {
-        const name = await ticket.$eval("div.ticket-info > div.detail > div.event", (elem) =>
+        const name = await ticket.$eval(".ticket-info > .detail > .event", (elem) =>
           elem.firstChild?.textContent?.trim()
         );
         const startDate = await ticket.$eval(
@@ -106,11 +98,9 @@ export class TicketportalService {
           isOnSale: soldOutBox === null,
         });
       } catch (e) {
-        this.#logger.error(`Error occurred for the url: ${concertUrl}`);
-        this.#logger.error(e);
+        this.#logger.error("[" + concertUrl + "] - " + (e instanceof Error ? e.message : String(e)));
       }
     }
-    await page.close();
     return concertData.map((data) => ({
       meta: {
         portal: "ticketportal",
@@ -142,72 +132,101 @@ export class TicketportalService {
         // Headless browsers often have different user-agents that websites can detect,
         // e.g: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/120.0.0.0 Safari/537.36".
         "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "--disable-dev-shm-usage",
+        // "--disable-gpu",
+        // "--single-process",
       ],
     });
-    const page = (await browser.pages())[0]!;
 
-    // load page and wait for a dynamic content (JS) to be loaded properly before continuing
-    const res = await page.goto(this.#baseUrl, { waitUntil: "networkidle2" });
+    try {
+      const page = (await browser.pages())[0]!;
 
-    if (!res) {
-      this.#logger.error(`No response from the base url: ${this.#baseUrl}.`);
-      return;
-    }
-
-    // SETUP
-    // 1) deny cookies
-    await page.locator("button#didomi-notice-learn-more-button").click();
-    await page.locator("button#btn-toggle-disagree").click();
-
-    // GET CONCERTS
-    const genreNames = (
-      await page.$$eval("::-p-xpath(//nav//div[@id='filterMenu']//div[@id='filter_subkategorie']/label)", (elems) =>
-        elems.map((elem) => elem.textContent?.trim())
-      )
-    ).filter((genreName) => genreName !== undefined);
-
-    for (const genreName of genreNames) {
-      const genrePage = await browser.newPage();
-      await genrePage.goto(this.#baseUrl, { waitUntil: "networkidle2" });
-      await genrePage
-        .locator(
-          `::-p-xpath(//nav//div[@id='filterMenu']//div[@id='filter_subkategorie']/label[contains(text(), '${genreName}')])`
-        )
-        .click();
-      const panelBlocks = await genrePage.$$(
-        "::-p-xpath(//div[contains(@class, 'panel-blok') and not(contains(@class, 'super-nove-top'))])"
-      );
-      const multipleEventDatesChecker = new Set<string>();
-
-      for (const panelBlock of panelBlocks) {
-        if (!panelBlock) {
-          break;
-        }
-
-        // show all concerts in this panel block
-        while (true) {
-          const nextButton = await panelBlock.$("button#btn-load");
-
-          if (nextButton) {
-            await nextButton.click();
-          } else {
-            break;
-          }
-        }
-
-        // get all concert links from the panel block
-        const newUrls = await panelBlock.$$eval("div.koncert > div.thumbnail > a", (elems) =>
-          elems.map((elem) => elem.href)
-        );
-
-        // extract concert data and add it to the queue
-        for (const url of newUrls) {
-          const concerts = await this.#getConcertEvents(browser, url, genreName, multipleEventDatesChecker);
-          await this.concertEventsQueue.addBulk(concerts.map((concert) => ({ name: "ticketportal", data: concert })));
-        }
+      // load page and wait for a dynamic content (JS) to be loaded properly before continuing
+      if (!(await page.goto(this.#baseUrl, { waitUntil: "networkidle2" }))) {
+        this.#logger.error(`No response from the base url: ${this.#baseUrl}.`);
+        return;
       }
 
-      await genrePage.close();
+      // SETUP
+      // 1) deny cookies
+      await page.locator("button#didomi-notice-learn-more-button").click();
+      await page.locator("button#btn-toggle-disagree").click();
+
+      // GET CONCERTS
+      const genreNames = (
+        await page.$$eval("::-p-xpath(//nav//div[@id='filterMenu']//div[@id='filter_subkategorie']/label)", (elems) =>
+          elems.map((elem) => elem.textContent?.trim())
+        )
+      ).filter((genreName) => genreName !== undefined);
+
+      const multipleEventDatesChecker = new Set<string>();
+
+      for (const genreName of genreNames) {
+        await page.goto(this.#baseUrl);
+
+        try {
+          await page
+            .locator(
+              `::-p-xpath(//nav//div[@id='filterMenu']//div[@id='filter_subkategorie']/label[contains(text(), '${genreName}')])`
+            )
+            .click();
+          const panelBlocks = await page.$$(
+            "::-p-xpath(//div[contains(@class, 'panel-blok') and not(contains(@class, 'super-nove-top')) and not (contains(@class, 'donekonecna'))])"
+          );
+          this.#logger.log("Genre: " + genreName);
+
+          for (const panelBlock of panelBlocks) {
+            // show all concerts in this panel block
+            while (true) {
+              const nextButton = await panelBlock.$("button#btn-load");
+
+              if (!nextButton) {
+                break;
+              }
+
+              try {
+                await nextButton.click();
+              } catch (e) {
+                this.#logger.error("Genre panel next button error: " + (e instanceof Error ? e.message : e));
+                break;
+              }
+            }
+
+            // get all concert links from the panel block
+            const newUrls = await panelBlock.$$eval("div.koncert > div.thumbnail > a", (elems) =>
+              elems.map((elem) => elem.href)
+            );
+
+            // extract concert data and add it to the queue
+            for (const url of newUrls) {
+              const concertPage = await browser.newPage();
+
+              try {
+                if (!(await concertPage.goto(url))) {
+                  throw new Error("Cannot navigate to the URL.");
+                }
+
+                const concerts = await this.#getConcertEvents(concertPage, url, genreName, multipleEventDatesChecker);
+                await this.concertEventsQueue.addBulk(
+                  concerts.map((concert) => ({ name: "ticketportal", data: concert }))
+                );
+              } catch (e) {
+                this.#logger.error("[" + url + "] - " + (e instanceof Error ? e.message : String(e)));
+              } finally {
+                await concertPage.close();
+              }
+            }
+          }
+        } catch (e) {
+          this.#logger.error(e instanceof Error ? e.message : e);
+        } finally {
+          multipleEventDatesChecker.clear();
+        }
+      }
+    } catch (e) {
+      this.#logger.error(e instanceof Error ? e.message : e);
+    } finally {
+      await browser.close();
     }
   }
 }
