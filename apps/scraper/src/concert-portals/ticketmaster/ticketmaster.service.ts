@@ -16,6 +16,7 @@ import { TicketmasterResponse } from "./ticketmaster-api.types";
 export class TicketmasterService {
   readonly #logger = new Logger(TicketmasterService.name);
   #currentPage = 0;
+  #availableInUTCDateTime = 0;
 
   constructor(
     @InjectQueue(ConcertEventsQueue.name)
@@ -26,6 +27,10 @@ export class TicketmasterService {
     >,
     private readonly http: HttpService
   ) {}
+
+  public get availableInUTCDateTime() {
+    return this.#availableInUTCDateTime;
+  }
 
   // TODO: correct Cron period time
   // TODO: handle Ticketmaster API request limits
@@ -54,16 +59,15 @@ export class TicketmasterService {
 
     if (res instanceof AxiosError) {
       this.#logger.error(res.message);
-      // TODO: what to do on error?
       return;
     }
 
-    const { data, headers } = res;
+    const { data, headers, status } = res;
 
-    // headers["rate-limit"]
-    // headers["rate-limit-available"]
-    // headers["rate-limit-over"]
-    // headers["rate-limit-reset"]
+    // headers["rate-limit"] - what’s the rate limit available to you, the default is 5000
+    // headers["rate-limit-available"] - how many requests are available to you, this will be 5000 minus all the requests you’ve done
+    // headers["rate-limit-over"] - how many requests over your quota you’ve made
+    // headers["rate-limit-reset"] - the UTC date and time of when your quota will be reset
     this.#logger.log(
       `Limit: ${headers["rate-limit"]}, Available: ${headers["rate-limit-available"]}, Over: ${headers["rate-limit-over"]}, Reset: ${headers["rate-limit-reset"]}`
     );
@@ -71,15 +75,18 @@ export class TicketmasterService {
     if ("fault" in data) {
       // HTTP 401 - invalid API key
       // HTTP 429 - quota reached
+      if (status === 429) {
+        this.#availableInUTCDateTime = Number(headers["rate-limit-reset"]);
+      }
+
       this.#logger.error(data.fault.faultstring);
       return;
     }
 
-    this.#logger.log(data.page);
-
     if (!data._embedded || data.page.number >= data.page.totalPages) {
       this.#logger.log("No more events.");
       this.#currentPage = 0;
+      this.#availableInUTCDateTime = Number(headers["rate-limit-reset"]);
       return;
     }
 
