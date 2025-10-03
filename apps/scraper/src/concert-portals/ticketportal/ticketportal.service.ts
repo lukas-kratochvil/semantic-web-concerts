@@ -1,7 +1,6 @@
 import { InjectQueue } from "@nestjs/bullmq";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Timeout } from "@nestjs/schedule";
 import {
   type ConcertEventsQueueDataType,
   type ConcertEventsQueueNameType,
@@ -10,12 +9,20 @@ import {
 import type { Queue } from "bullmq";
 import { launch, type Page } from "puppeteer";
 import type { ConfigSchema } from "../../config/schema";
+import type { ICronJobService } from "../cron-job-service.types";
 
 @Injectable()
-export class TicketportalService {
+export class TicketportalService implements ICronJobService {
   readonly #logger = new Logger(TicketportalService.name);
   readonly #baseUrl: string;
   readonly #puppeteerArgs: string[];
+
+  #isInProcess = false;
+
+  readonly jobName = "ticketportal";
+  readonly jobType = "timeout";
+  runDate = new Date(2025, 9, 2, 3, 15);
+  readonly runPeriodInMinutes = 24 * 60;
 
   constructor(
     @InjectQueue(ConcertEventsQueue.name)
@@ -30,6 +37,10 @@ export class TicketportalService {
     // Running as root without --no-sandbox is not supported. See https://crbug.com/638180.
     this.#puppeteerArgs
       = config.get("nodeEnv", { infer: true }) === "development" ? ["--no-sandbox", "--disable-setuid-sandbox"] : [];
+  }
+
+  isInProcess() {
+    return this.#isInProcess;
   }
 
   async #getConcertEvents(
@@ -116,9 +127,8 @@ export class TicketportalService {
     }));
   }
 
-  // TODO: correct Cron period time
-  @Timeout(3_000)
-  async fetch() {
+  async run() {
+    this.#isInProcess = true;
     const browser = await launch({
       defaultViewport: {
         height: 1000,
@@ -222,6 +232,7 @@ export class TicketportalService {
       this.#logger.error(e instanceof Error ? e.message : e);
     } finally {
       await browser.close();
+      this.#isInProcess = false;
     }
   }
 }

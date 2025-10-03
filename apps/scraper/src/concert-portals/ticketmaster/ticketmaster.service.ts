@@ -1,7 +1,6 @@
 import { HttpService } from "@nestjs/axios";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Injectable, Logger } from "@nestjs/common";
-import { Interval } from "@nestjs/schedule";
 import {
   type ConcertEventsQueueDataType,
   type ConcertEventsQueueNameType,
@@ -10,13 +9,18 @@ import {
 import { AxiosError } from "axios";
 import type { Queue } from "bullmq";
 import { catchError, firstValueFrom } from "rxjs";
+import type { ICronJobService } from "../cron-job-service.types";
 import { TicketmasterResponse } from "./ticketmaster-api.types";
 
 @Injectable()
-export class TicketmasterService {
+export class TicketmasterService implements ICronJobService {
   readonly #logger = new Logger(TicketmasterService.name);
   #currentPage = 0;
-  #availableInUTCDateTime = 0;
+
+  readonly jobName = "ticketmaster";
+  readonly jobType = "interval";
+  runDate = new Date(2025, 9, 2, 3, 30);
+  readonly runPeriodInMinutes = 24 * 60;
 
   constructor(
     @InjectQueue(ConcertEventsQueue.name)
@@ -28,14 +32,15 @@ export class TicketmasterService {
     private readonly http: HttpService
   ) {}
 
-  public get availableInUTCDateTime() {
-    return this.#availableInUTCDateTime;
+  isInProcess() {
+    return this.#currentPage !== 0;
   }
 
-  // TODO: correct Cron period time
-  // TODO: handle Ticketmaster API request limits
-  @Interval(3_000)
-  async fetch() {
+  #setNewStartDate(availabilityInMsUTC: number) {
+    this.runDate = new Date(availabilityInMsUTC);
+  }
+
+  async run() {
     // The default quota is 5000 API calls per day and rate limitation of 5 requests per second.
     // Deep Paging: only supports retrieving the 1000th item. i.e. (size * page < 1000).
     const res = await firstValueFrom(
@@ -76,7 +81,7 @@ export class TicketmasterService {
       // HTTP 401 - invalid API key
       // HTTP 429 - quota reached
       if (status === 429) {
-        this.#availableInUTCDateTime = Number(headers["rate-limit-reset"]);
+        this.#setNewStartDate(Number(headers["rate-limit-reset"]));
       }
 
       this.#logger.error(data.fault.faultstring);
@@ -86,7 +91,7 @@ export class TicketmasterService {
     if (!data._embedded || data.page.number >= data.page.totalPages) {
       this.#logger.log("No more events.");
       this.#currentPage = 0;
-      this.#availableInUTCDateTime = Number(headers["rate-limit-reset"]);
+      this.#setNewStartDate(Number(headers["rate-limit-reset"]));
       return;
     }
 
