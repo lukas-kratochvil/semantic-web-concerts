@@ -1,31 +1,42 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { Interval, SchedulerRegistry } from "@nestjs/schedule";
+import { minutesToMilliseconds } from "date-fns";
 import { CUSTOM_PROVIDERS } from "../constants";
 import type { ICronJobService } from "./cron-job-service.types";
 
 @Injectable()
 export class CronManagerService {
+  readonly #logger = new Logger(CronManagerService.name);
+
   constructor(
     private readonly schedulerRegistry: SchedulerRegistry,
     @Inject(CUSTOM_PROVIDERS.cronJobServices) private readonly cronJobServices: ICronJobService[]
   ) {}
 
-  @Interval(60_000 * 5)
+  @Interval(minutesToMilliseconds(5))
   runJobs() {
     this.cronJobServices
       .filter((cronJobService) => !cronJobService.isInProcess())
       .forEach((cronJobService) => {
-        if (cronJobService.runDate.getTime() <= Date.now()) {
-          // TODO: create CronJob instances instead (`this.schedulerRegistry.addCronJob(name, job);`)?
+        if (cronJobService.getRunDate().getTime() <= Date.now()) {
+          this.#logger.log("Run job: " + cronJobService.jobName);
+
           if (cronJobService.jobType === "timeout") {
-            const timeout = setTimeout(cronJobService.run, 1_000);
+            const timeout = setTimeout(async () => {
+              await cronJobService.run();
+              this.schedulerRegistry.deleteTimeout(cronJobService.jobName);
+              this.#logger.log("Job '" + cronJobService.jobName + "' has finished.");
+            }, 1_000);
             this.schedulerRegistry.addTimeout(cronJobService.jobName, timeout);
-            // TODO: correct setting next `runDate` so it is always in the future
-            cronJobService.runDate = new Date(
-              cronJobService.runDate.getTime() + cronJobService.runPeriodInMinutes * 60_000
-            );
           } else if (cronJobService.jobType === "interval") {
-            const interval = setInterval(cronJobService.run, 1_000);
+            const interval = setInterval(async () => {
+              await cronJobService.run();
+
+              if (cronJobService.getRunDate().getTime() > Date.now()) {
+                this.schedulerRegistry.deleteInterval(cronJobService.jobName);
+                this.#logger.log("Job '" + cronJobService.jobName + "' has finished.");
+              }
+            }, 1_000);
             this.schedulerRegistry.addInterval(cronJobService.jobName, interval);
           }
         }

@@ -19,7 +19,7 @@ export interface ICronJobService {
   /**
    * The earliest time in UTC datetime when the `run` function can be executed again.
    */
-  runDate: Date;
+  getRunDate(): Date;
 
   /**
    *

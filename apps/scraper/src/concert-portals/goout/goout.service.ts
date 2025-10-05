@@ -7,7 +7,7 @@ import {
   ConcertEventsQueue,
 } from "@semantic-web-concerts/core";
 import { Queue } from "bullmq";
-import { parse } from "date-fns";
+import { addMinutes, hoursToMinutes, parse } from "date-fns";
 import { launch, type Page } from "puppeteer";
 import type { ConfigSchema } from "../../config/schema";
 import type { ICronJobService } from "../cron-job-service.types";
@@ -19,11 +19,11 @@ export class GooutService implements ICronJobService {
   readonly #puppeteerArgs: string[];
 
   #isInProcess = false;
+  #runDate = new Date(Date.now());
 
   readonly jobName = "goout";
   readonly jobType = "timeout";
-  runDate = new Date(2025, 9, 2, 3, 0);
-  readonly runPeriodInMinutes = 24 * 60;
+  readonly runPeriodInMinutes = hoursToMinutes(24);
 
   constructor(
     @InjectQueue(ConcertEventsQueue.name)
@@ -38,6 +38,10 @@ export class GooutService implements ICronJobService {
     // Running as root without --no-sandbox is not supported. See https://crbug.com/638180.
     this.#puppeteerArgs
       = config.get("nodeEnv", { infer: true }) === "development" ? ["--no-sandbox", "--disable-setuid-sandbox"] : [];
+  }
+
+  getRunDate(): Date {
+    return this.#runDate;
   }
 
   isInProcess() {
@@ -219,6 +223,8 @@ export class GooutService implements ICronJobService {
     } finally {
       await browser.close();
       this.#isInProcess = false;
+      // TODO: correct setting next `runDate` so it is always in the future and in the night
+      this.#runDate = addMinutes(this.getRunDate(), this.runPeriodInMinutes);
     }
   }
 }
