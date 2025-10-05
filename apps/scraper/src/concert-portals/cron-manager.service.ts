@@ -23,18 +23,30 @@ export class CronManagerService {
 
           if (cronJobService.jobType === "timeout") {
             const timeout = setTimeout(async () => {
-              await cronJobService.run();
-              this.schedulerRegistry.deleteTimeout(cronJobService.jobName);
-              this.#logger.log("Job '" + cronJobService.jobName + "' has finished.");
+              try {
+                await cronJobService.run();
+                this.schedulerRegistry.deleteTimeout(cronJobService.jobName);
+                this.#logger.log("Job '" + cronJobService.jobName + "' has finished.");
+              } catch (e) {
+                this.#logger.error(
+                  "Job '" + cronJobService.jobName + "' thrown error: " + (e instanceof Error ? e.message : e)
+                );
+              }
             }, 1_000);
             this.schedulerRegistry.addTimeout(cronJobService.jobName, timeout);
           } else if (cronJobService.jobType === "interval") {
             const interval = setInterval(async () => {
-              await cronJobService.run();
+              try {
+                await cronJobService.run();
 
-              if (cronJobService.getRunDate().getTime() > Date.now()) {
-                this.schedulerRegistry.deleteInterval(cronJobService.jobName);
-                this.#logger.log("Job '" + cronJobService.jobName + "' has finished.");
+                if (cronJobService.getRunDate().getTime() > Date.now()) {
+                  this.schedulerRegistry.deleteInterval(cronJobService.jobName);
+                  this.#logger.log("Job '" + cronJobService.jobName + "' has finished.");
+                }
+              } catch (e) {
+                this.#logger.error(
+                  "Job '" + cronJobService.jobName + "' thrown error: " + (e instanceof Error ? e.message : e)
+                );
               }
             }, 1_000);
             this.schedulerRegistry.addInterval(cronJobService.jobName, interval);

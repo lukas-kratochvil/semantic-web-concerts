@@ -7,7 +7,7 @@ import {
   ConcertEventsQueue,
 } from "@semantic-web-concerts/core";
 import { Queue } from "bullmq";
-import { addMinutes, hoursToMinutes, parse } from "date-fns";
+import { addDays, parse, set } from "date-fns";
 import { launch, type Page } from "puppeteer";
 import type { ConfigSchema } from "../../config/schema";
 import type { ICronJobService } from "../cron-job-service.types";
@@ -20,10 +20,10 @@ export class GooutService implements ICronJobService {
 
   #isInProcess = false;
   #runDate = new Date(Date.now());
+  readonly #scheduledHour = 2;
 
   readonly jobName = "goout";
   readonly jobType = "timeout";
-  readonly runPeriodInMinutes = hoursToMinutes(24);
 
   constructor(
     @InjectQueue(ConcertEventsQueue.name)
@@ -223,8 +223,23 @@ export class GooutService implements ICronJobService {
     } finally {
       await browser.close();
       this.#isInProcess = false;
-      // TODO: correct setting next `runDate` so it is always in the future and in the night
-      this.#runDate = addMinutes(this.getRunDate(), this.runPeriodInMinutes);
+      this.#setNextRunDate();
     }
+  }
+
+  #setNextRunDate() {
+    const now = new Date();
+    let runDate = set(now, {
+      hours: this.#scheduledHour,
+      minutes: 0,
+      seconds: 0,
+      milliseconds: 0,
+    });
+
+    while (runDate.getTime() <= Date.now()) {
+      runDate = addDays(runDate, 1);
+    }
+
+    this.#runDate = runDate;
   }
 }

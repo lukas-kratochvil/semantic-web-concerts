@@ -22,11 +22,6 @@ export interface ICronJobService {
   getRunDate(): Date;
 
   /**
-   *
-   */
-  readonly runPeriodInMinutes: number;
-
-  /**
    * Determines if the `run` function is still in the process.
    */
   isInProcess(): boolean;

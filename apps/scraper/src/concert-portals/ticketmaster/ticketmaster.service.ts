@@ -8,7 +8,7 @@ import {
 } from "@semantic-web-concerts/core";
 import { AxiosError } from "axios";
 import type { Queue } from "bullmq";
-import { addMinutes, hoursToMinutes, max } from "date-fns";
+import { addDays, max, set } from "date-fns";
 import { catchError, firstValueFrom } from "rxjs";
 import type { ICronJobService } from "../cron-job-service.types";
 import { TicketmasterResponse } from "./ticketmaster-api.types";
@@ -18,10 +18,10 @@ export class TicketmasterService implements ICronJobService {
   readonly #logger = new Logger(TicketmasterService.name);
   #currentPage = 0;
   #runDate = new Date(Date.now());
+  readonly #scheduledHour = 2;
 
   readonly jobName = "ticketmaster";
   readonly jobType = "interval";
-  readonly runPeriodInMinutes = hoursToMinutes(24);
 
   constructor(
     @InjectQueue(ConcertEventsQueue.name)
@@ -41,9 +41,25 @@ export class TicketmasterService implements ICronJobService {
     return this.#currentPage !== 0;
   }
 
+  #computeNextRunDate() {
+    const now = new Date();
+    let runDate = set(now, {
+      hours: this.#scheduledHour,
+      minutes: 0,
+      seconds: 0,
+      milliseconds: 0,
+    });
+
+    while (runDate.getTime() <= Date.now()) {
+      runDate = addDays(runDate, 1);
+    }
+
+    return runDate;
+  }
+
   #setNewStartDate(availabilityInMsUTC: number) {
     const nextAvailableDate = new Date(availabilityInMsUTC);
-    const nextPeriodDate = addMinutes(this.getRunDate(), this.runPeriodInMinutes);
+    const nextPeriodDate = this.#computeNextRunDate();
     this.#runDate = max([nextAvailableDate, nextPeriodDate]);
   }
 
