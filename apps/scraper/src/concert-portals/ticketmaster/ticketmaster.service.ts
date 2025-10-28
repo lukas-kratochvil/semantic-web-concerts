@@ -148,6 +148,7 @@ export class TicketmasterService implements ICronJobService {
           name: g,
         })),
         dateTime: {
+          doors: event.dates.access?.startDateTime,
           start: event.dates.start.dateTime ?? event.dates.start.localDate, // `dateTime` not present if f.e. `event.dates.status.code === 'postponed'`
           end: undefined,
         },

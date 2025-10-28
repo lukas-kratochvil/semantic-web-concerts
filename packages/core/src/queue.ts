@@ -59,6 +59,7 @@ type ConcertEvent = {
   artists: Artist[];
   genres: Genre[];
   dateTime: {
+    doors: string | undefined;
     start: string;
     end: string | undefined;
   };

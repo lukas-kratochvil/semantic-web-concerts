@@ -98,10 +98,14 @@ export class TicketportalService implements ICronJobService {
 
         // TODO: extract artists (their name and country) from the event name or from the event description
         const artists: { name: string; country: string }[] = [];
+        // TODO: extract door time from the description
+        const doors = "";
+
         concertData.push({
           name,
           artists: artists.map((artist) => ({ name: artist.name, country: artist.country, externalUrls: {} })),
           dateTime: {
+            doors,
             start: startDate,
             end: undefined,
           },

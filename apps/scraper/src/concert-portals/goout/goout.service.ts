@@ -96,6 +96,15 @@ export class GooutService implements ICronJobService {
       )
     ).filter((artist): artist is StrictOmit<typeof artist, "name"> & { name: string } => artist.name !== undefined);
 
+    let doorsDatetime: string | undefined;
+    try {
+      doorsDatetime = await page.$eval(
+        `::-p-xpath(//section[contains(@class, 'py-1')]//div[contains(@class, 'info-item')]/div/span[text()='Doors']/parent::div/parent::div/div[2]/time)` as const,
+        (elem) => (elem as HTMLTimeElement).dateTime
+      );
+    } catch (e) {
+      /* doors not found */
+    }
     const [datetime1, datetime2] = await page.$$eval(
       "div.detail-header time",
       // `dateTime` attribute of the HTML `time` element contains start datetime value even for the 'end datetime' element, so we have to extract the datetime from the text content
@@ -136,6 +145,7 @@ export class GooutService implements ICronJobService {
         name,
         artists,
         dateTime: {
+          doors: doorsDatetime,
           start: startDatetime,
           end: endDatetime,
         },
