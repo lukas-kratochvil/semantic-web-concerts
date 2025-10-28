@@ -69,7 +69,7 @@ type ConcertEvent = {
 export type ConcertEventsQueueDataType = {
   meta: {
     portal: ConcertEventsQueueNameType;
-    eventId: string;
+    eventUrl: string;
   };
   event: ConcertEvent;
 };

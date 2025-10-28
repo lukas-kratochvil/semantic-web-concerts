@@ -118,7 +118,7 @@ export class TicketportalService implements ICronJobService {
     return concertData.map((data) => ({
       meta: {
         portal: "ticketportal",
-        eventId: concertUrl,
+        eventUrl: concertUrl,
       },
       event: {
         name: data.name,

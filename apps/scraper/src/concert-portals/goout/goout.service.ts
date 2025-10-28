@@ -98,7 +98,7 @@ export class GooutService implements ICronJobService {
     return {
       meta: {
         portal: "goout",
-        eventId: concertUrl,
+        eventUrl: concertUrl,
       },
       event: {
         name,

@@ -124,7 +124,7 @@ export class TicketmasterService implements ICronJobService {
     const concerts = data._embedded.events.map<ConcertEventsQueueDataType>((event) => ({
       meta: {
         portal: "ticketmaster",
-        eventId: event.id,
+        eventUrl: event.url,
       },
       event: {
         name: event.name,
