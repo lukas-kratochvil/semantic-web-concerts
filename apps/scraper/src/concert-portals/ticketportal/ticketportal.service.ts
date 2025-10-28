@@ -112,7 +112,7 @@ export class TicketportalService implements ICronJobService {
           isOnSale: soldOutBox === null,
         });
       } catch (e) {
-        this.#logger.error("[" + concertUrl + "] - " + (e instanceof Error ? e.message : String(e)));
+        this.#logger.error("[" + concertUrl + "]", e);
       }
     }
     return concertData.map((data) => ({
@@ -133,7 +133,6 @@ export class TicketportalService implements ICronJobService {
   }
 
   async run() {
-    this.#isInProcess = true;
     const browser = await launch({
       defaultViewport: {
         height: 1000,
@@ -142,13 +141,14 @@ export class TicketportalService implements ICronJobService {
       args: [
         ...this.#puppeteerArgs,
         // The `--user-agent` arg tricks websites into thinking that headless Chromium is a normal Chrome browser.
-        // Headless browsers often have different user-agents that websites can detect,
-        // e.g: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/120.0.0.0 Safari/537.36".
+        // Headless browsers often have different user-agents that websites can detect, e.g: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/120.0.0.0 Safari/537.36".
+        // robots.txt file (https://www.ticketportal.cz/robots.txt) allows to crawl music events
         "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
       ],
     });
 
     try {
+      this.#isInProcess = true;
       const page = (await browser.pages())[0]!;
 
       // load page and wait for a dynamic content (JS) to be loaded properly before continuing
@@ -195,9 +195,7 @@ export class TicketportalService implements ICronJobService {
               try {
                 await nextButton.click();
               } catch (e) {
-                this.#logger.error(
-                  "[" + genreName + "] - Panel next button error: " + (e instanceof Error ? e.message : e)
-                );
+                this.#logger.error("[" + genreName + "] - Panel next button error:", e);
                 break;
               }
             }
@@ -221,7 +219,7 @@ export class TicketportalService implements ICronJobService {
                   concerts.map((concert) => ({ name: "ticketportal", data: concert }))
                 );
               } catch (e) {
-                this.#logger.error("[" + url + "] - " + (e instanceof Error ? e.message : String(e)));
+                this.#logger.error("[" + url + "]", e);
               } finally {
                 await concertPage.close();
               }

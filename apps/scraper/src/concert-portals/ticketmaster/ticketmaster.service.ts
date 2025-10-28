@@ -121,7 +121,6 @@ export class TicketmasterService implements ICronJobService {
     this.#currentPage++;
 
     // extract concert data
-    // TODO: event.dates.status.code: 'onsale', 'offsale', 'cancelled', 'postponed', 'rescheduled'
     const concerts = data._embedded.events.map<ConcertEventsQueueDataType>((event) => ({
       meta: {
         portal: "ticketmaster",
@@ -129,10 +128,18 @@ export class TicketmasterService implements ICronJobService {
       },
       event: {
         name: event.name,
-        artists: event._embedded.attractions.map((a) => ({
-          name: a.name,
-          country: undefined,
-        })),
+        artists: event._embedded.attractions
+          .filter(
+            (a) =>
+              !a.classifications
+                .map((c) => c.subType.name)
+                .flat()
+                .includes("Koncert")
+          )
+          .map((a) => ({
+            name: a.name,
+            country: undefined,
+          })),
         genres: [...new Set(event.classifications.map((c) => [c.genre.name, c.subGenre.name]).flat())].map((g) => ({
           name: g,
         })),
@@ -150,6 +157,7 @@ export class TicketmasterService implements ICronJobService {
           url: v.url,
         })),
         ticketsUrl: event.url,
+        // TODO: event.dates.status.code: 'onsale', 'offsale', 'cancelled', 'postponed', 'rescheduled'
         isOnSale: event.dates.status.code === "onsale",
       },
     }));

@@ -6,6 +6,7 @@ import {
   type ConcertEventsQueueNameType,
   ConcertEventsQueue,
 } from "@semantic-web-concerts/core";
+import type { StrictOmit } from "@semantic-web-concerts/shared";
 import { Queue } from "bullmq";
 import { addDays, parse, set } from "date-fns";
 import { launch, type Page } from "puppeteer";
@@ -52,7 +53,7 @@ export class GooutService implements ICronJobService {
     const name = await page.$eval("h1", (elem) => elem.innerText);
 
     const artistsDivs = await page.$$(
-      "::-p-xpath(//h2[text()='Performing artists']/following-sibling::div/div[contains(@class, 'profile-box')]/div/div[contains(@class, 'content')]/div[1])"
+      "::-p-xpath(//h2[text()='Performing artists']/following-sibling::div[contains(@class, 'row')]/div/div[contains(@class, 'profile-box')]/div[contains(@class, 'content')]/div[1])"
     );
     const artists = (
       await Promise.all(
@@ -61,7 +62,7 @@ export class GooutService implements ICronJobService {
           country: await artistDiv.$eval("::-p-xpath(./*[2])", (elem) => elem.textContent?.trim()),
         }))
       )
-    ).filter((artist): artist is { name: string; country: string | undefined } => artist.name !== undefined);
+    ).filter((artist): artist is StrictOmit<typeof artist, "name"> & { name: string } => artist.name !== undefined);
 
     const [datetime1, datetime2] = await page.$$eval(
       "div.detail-header time",
@@ -130,8 +131,8 @@ export class GooutService implements ICronJobService {
       args: [
         ...this.#puppeteerArgs,
         // The `--user-agent` arg tricks websites into thinking that headless Chromium is a normal Chrome browser.
-        // Headless browsers often have different user-agents that websites can detect,
-        // e.g: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/120.0.0.0 Safari/537.36".
+        // Headless browsers often have different user-agents that websites can detect, e.g: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/120.0.0.0 Safari/537.36".
+        // robots.txt file (https://goout.net/robots.txt) allows to crawl music events
         "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
       ],
     });
@@ -154,7 +155,11 @@ export class GooutService implements ICronJobService {
 
       // SETUP
       // 1) deny cookies
-      await page.locator("button#CybotCookiebotDialogBodyButtonDecline").click();
+      try {
+        await page.locator("button#CybotCookiebotDialogBodyButtonDecline")?.click();
+      } catch {
+        /* cookies not displayed */
+      }
 
       // 2) check that first dropdown menu button has `innerText="Czechia"` otherwise select "Czechia"
       const country = "Czechia";
@@ -193,10 +198,9 @@ export class GooutService implements ICronJobService {
           await page.waitForSelector(linksSelector);
           const newUrls = await page.$$eval(linksSelector, (links) => links.map((link) => link.href));
 
+          const concertPage = await browser.newPage();
           // extract concert data and add it to the queue
-          newUrls.forEach(async (url) => {
-            const concertPage = await browser.newPage();
-
+          for (const url of newUrls) {
             try {
               if (!(await concertPage.goto(url))) {
                 throw new Error("Cannot navigate to the URL.");
@@ -205,12 +209,11 @@ export class GooutService implements ICronJobService {
               const concert = await this.#getConcertEvent(concertPage, url);
               await this.concertEventsQueue.add("goout", concert);
             } catch (e) {
-              this.#logger.error("[" + url + "] - " + (e instanceof Error ? e.message : String(e)));
-            } finally {
-              await concertPage.close();
+              this.#logger.error("[" + url + "]", e);
             }
-          });
+          }
 
+          await concertPage.close();
           // load new concerts
           await showMoreButton.click({ delay: 2_000 });
         } catch (e) {

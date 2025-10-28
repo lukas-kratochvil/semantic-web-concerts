@@ -202,13 +202,14 @@ export type Attraction = {
 };
 
 export type ExternalLinks = {
-  youtube: URL[];
-  twitter: URL[];
-  itunes: URL[];
-  spotify: URL[];
-  facebook: URL[];
-  instagram: URL[];
-  homepage: URL[];
+  facebook?: URL[];
+  homepage?: URL[];
+  instagram?: URL[];
+  itunes?: URL[];
+  musicbrainz?: URL[];
+  spotify?: URL[];
+  twitter?: URL[];
+  youtube?: URL[];
 };
 
 export type URL = {

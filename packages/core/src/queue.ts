@@ -10,14 +10,24 @@ export const ConcertEventsQueue = {
   },
 } as const;
 
+/**
+ * Concert event queue job name type.
+ */
+export type ConcertEventsQueueNameType = keyof (typeof ConcertEventsQueue)["jobs"];
+
+/**
+ * Artist entity.
+ */
 type Artist = {
   name: string;
   country: string | undefined;
+  // TODO: also add these fields?
   // images: string[];
 };
 
-type Genre = { name: string };
-
+/**
+ * Venue entity.
+ */
 type Venue = {
   name: string;
   address: string;
@@ -27,8 +37,30 @@ type Venue = {
         latitude: string;
       }
     | undefined;
+  // TODO: also add these fields?
   // images: string[];
   // url: string;
+};
+
+/**
+ * Genre entity.
+ */
+type Genre = { name: string };
+
+/**
+ * ConcertEvent entity.
+ */
+type ConcertEvent = {
+  name: string;
+  artists: Artist[];
+  genres: Genre[];
+  dateTime: {
+    start: string;
+    end: string | undefined;
+  };
+  venues: Venue[];
+  ticketsUrl: string;
+  isOnSale: boolean;
 };
 
 /**
@@ -39,21 +71,5 @@ export type ConcertEventsQueueDataType = {
     portal: ConcertEventsQueueNameType;
     eventId: string;
   };
-  event: {
-    name: string;
-    artists: Artist[];
-    genres: Genre[];
-    dateTime: {
-      start: string;
-      end: string | undefined;
-    };
-    venues: Venue[];
-    ticketsUrl: string;
-    isOnSale: boolean;
-  };
+  event: ConcertEvent;
 };
-
-/**
- * Concert event queue job name type.
- */
-export type ConcertEventsQueueNameType = keyof (typeof ConcertEventsQueue)["jobs"];
