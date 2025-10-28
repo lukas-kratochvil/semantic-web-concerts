@@ -9,7 +9,7 @@ import {
 import type { StrictOmit } from "@semantic-web-concerts/shared";
 import { Queue } from "bullmq";
 import { addDays, parse, set } from "date-fns";
-import { launch, type Page } from "puppeteer";
+import { launch, type Browser, type Page } from "puppeteer";
 import type { ConfigSchema } from "../../config/schema";
 import type { ICronJobService } from "../cron-job-service.types";
 
@@ -49,6 +49,32 @@ export class GooutService implements ICronJobService {
     return this.#isInProcess;
   }
 
+  async #getArtistSpotifyUrl(browser: Browser, url: string | undefined) {
+    if (!url) {
+      return undefined;
+    }
+
+    const artistPage = await browser.newPage();
+    let spotifyUrl: string | undefined;
+
+    try {
+      if (!(await artistPage.goto(url))) {
+        throw new Error("Cannot navigate to the URL: " + url);
+      }
+
+      spotifyUrl = await artistPage.$eval(
+        "::-p-xpath(//header/descendant::ul[contains(@class, 'links-row')]/descendant::a[contains(@aria-label, 'Spotify')])",
+        (elem) => (elem as HTMLAnchorElement).href
+      );
+    } catch {
+      /* artist's Spotify account link not found */
+    } finally {
+      await artistPage.close();
+    }
+
+    return spotifyUrl?.replace("?autoplay=true", "");
+  }
+
   async #getConcertEvent(page: Page, concertUrl: string): Promise<ConcertEventsQueueDataType> {
     const name = await page.$eval("h1", (elem) => elem.innerText);
 
@@ -60,6 +86,12 @@ export class GooutService implements ICronJobService {
         artistsDivs.map(async (artistDiv) => ({
           name: await artistDiv.$eval("::-p-xpath(./*[1])", (elem) => elem.textContent?.trim()),
           country: await artistDiv.$eval("::-p-xpath(./*[2])", (elem) => elem.textContent?.trim()),
+          externalUrls: {
+            spotify: await this.#getArtistSpotifyUrl(
+              page.browser(),
+              await artistDiv.$eval("::-p-xpath(./*[1])", (elem) => (elem as HTMLAnchorElement).href)
+            ),
+          },
         }))
       )
     ).filter((artist): artist is StrictOmit<typeof artist, "name"> & { name: string } => artist.name !== undefined);

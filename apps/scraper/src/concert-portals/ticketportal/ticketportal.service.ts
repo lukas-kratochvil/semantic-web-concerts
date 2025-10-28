@@ -66,7 +66,7 @@ export class TicketportalService implements ICronJobService {
 
     const concertData: Pick<
       Pick<ConcertEventsQueueDataType, "event">["event"],
-      "name" | "dateTime" | "isOnSale" | "venues"
+      "name" | "artists" | "dateTime" | "isOnSale" | "venues"
     >[] = [];
 
     for (const ticket of tickets) {
@@ -96,8 +96,11 @@ export class TicketportalService implements ICronJobService {
           throw new Error("[" + concertUrl + "] - Missing event data.");
         }
 
+        // TODO: extract artists (their name and country) from the event name or from the event description
+        const artists: { name: string; country: string }[] = [];
         concertData.push({
           name,
+          artists: artists.map((artist) => ({ name: artist.name, country: artist.country, externalUrls: {} })),
           dateTime: {
             start: startDate,
             end: undefined,
@@ -122,7 +125,7 @@ export class TicketportalService implements ICronJobService {
       },
       event: {
         name: data.name,
-        artists: [{ name: data.name, country: undefined }], // name of the artist can be retrieved only from the event name
+        artists: data.artists,
         genres: [{ name: genreName }],
         dateTime: data.dateTime,
         venues: data.venues,

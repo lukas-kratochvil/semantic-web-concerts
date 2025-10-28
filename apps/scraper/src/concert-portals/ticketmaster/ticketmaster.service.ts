@@ -139,6 +139,10 @@ export class TicketmasterService implements ICronJobService {
           .map((a) => ({
             name: a.name,
             country: undefined,
+            externalUrls: {
+              musicbrainz: a.externalLinks?.musicbrainz?.at(0)?.url,
+              spotify: a.externalLinks?.spotify?.at(0)?.url,
+            },
           })),
         genres: [...new Set(event.classifications.map((c) => [c.genre.name, c.subGenre.name]).flat())].map((g) => ({
           name: g,

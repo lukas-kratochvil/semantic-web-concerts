@@ -21,6 +21,10 @@ export type ConcertEventsQueueNameType = keyof (typeof ConcertEventsQueue)["jobs
 type Artist = {
   name: string;
   country: string | undefined;
+  externalUrls: {
+    musicbrainz?: string;
+    spotify?: string;
+  };
   // TODO: also add these fields?
   // images: string[];
 };
