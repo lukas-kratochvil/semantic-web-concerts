@@ -127,7 +127,7 @@ export class TicketmasterService implements ICronJobService {
         eventUrl: event.url,
       },
       event: {
-        name: event.name,
+        name: event.name.trim(),
         artists: event._embedded.attractions
           .filter(
             (a) =>
@@ -137,31 +137,32 @@ export class TicketmasterService implements ICronJobService {
                 .includes("Koncert")
           )
           .map((a) => ({
-            name: a.name,
+            name: a.name.trim(),
             country: undefined,
             externalUrls: {
-              musicbrainz: a.externalLinks?.musicbrainz?.at(0)?.url,
-              spotify: a.externalLinks?.spotify?.at(0)?.url,
+              musicbrainz: a.externalLinks?.musicbrainz?.at(0)?.url.trim(),
+              spotify: a.externalLinks?.spotify?.at(0)?.url.trim(),
             },
           })),
         genres: [...new Set(event.classifications.map((c) => [c.genre.name, c.subGenre.name]).flat())].map((g) => ({
-          name: g,
+          name: g.trim(),
         })),
         dateTime: {
-          doors: event.dates.access?.startDateTime,
-          start: event.dates.start.dateTime ?? event.dates.start.localDate, // `dateTime` not present if f.e. `event.dates.status.code === 'postponed'`
+          doors: event.dates.access?.startDateTime.trim(),
+          // `event.dates.start.dateTime` not present if f.e. `event.dates.status.code === 'postponed'`
+          start: event.dates.start.dateTime?.trim() ?? event.dates.start.localDate.trim(),
           end: undefined,
         },
         venues: event._embedded.venues.map((v) => ({
-          name: v.name,
-          address: v.address.line1,
+          name: v.name.trim(),
+          address: v.address.line1.trim(),
           location: {
-            longitude: v.location.longitude,
-            latitude: v.location.latitude,
+            longitude: v.location.longitude.trim(),
+            latitude: v.location.latitude.trim(),
           },
-          url: v.url,
+          url: v.url.trim(),
         })),
-        ticketsUrl: event.url,
+        ticketsUrl: event.url.trim(),
         // TODO: event.dates.status.code: 'onsale', 'offsale', 'cancelled', 'postponed', 'rescheduled'
         isOnSale: event.dates.status.code === "onsale",
       },

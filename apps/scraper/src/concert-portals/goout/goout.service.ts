@@ -76,7 +76,7 @@ export class GooutService implements ICronJobService {
   }
 
   async #getConcertEvent(page: Page, concertUrl: string): Promise<ConcertEventsQueueDataType> {
-    const name = await page.$eval("h1", (elem) => elem.innerText);
+    const name = await page.$eval("h1", (elem) => elem.innerText.trim());
 
     const artistsDivs = await page.$$(
       "::-p-xpath(//h2[text()='Performing artists']/following-sibling::div[contains(@class, 'row')]/div/div[contains(@class, 'profile-box')]/div[contains(@class, 'content')]/div[1])"
@@ -100,7 +100,7 @@ export class GooutService implements ICronJobService {
     try {
       doorsDatetime = await page.$eval(
         `::-p-xpath(//section[contains(@class, 'py-1')]//div[contains(@class, 'info-item')]/div/span[text()='Doors']/parent::div/parent::div/div[2]/time)` as const,
-        (elem) => (elem as HTMLTimeElement).dateTime
+        (elem) => (elem as HTMLTimeElement).dateTime.trim()
       );
     } catch (e) {
       /* doors not found */
@@ -108,7 +108,7 @@ export class GooutService implements ICronJobService {
     const [datetime1, datetime2] = await page.$$eval(
       "div.detail-header time",
       // `dateTime` attribute of the HTML `time` element contains start datetime value even for the 'end datetime' element, so we have to extract the datetime from the text content
-      (elems) => elems.map((elem, i) => (i === 0 ? elem.dateTime : elem.innerText))
+      (elems) => elems.map((elem, i) => (i === 0 ? elem.dateTime.trim() : elem.innerText.trim()))
     );
 
     if (!datetime1) {
@@ -124,7 +124,9 @@ export class GooutService implements ICronJobService {
     const endDatetime = datetime2 ? getEndDatetime(datetime2) : undefined;
 
     const genresNames = (
-      await page.$$eval("div.py-2 > div.container > div.row a > span", (elems) => elems.map((elem) => elem.innerText))
+      await page.$$eval("div.py-2 > div.container > div.row a > span", (elems) =>
+        elems.map((elem) => elem.innerText.trim())
+      )
     ).filter((genreName) => genreName !== null);
 
     const getVenueSelector = (valueName: string) =>

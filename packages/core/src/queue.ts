@@ -25,7 +25,7 @@ type Artist = {
     musicbrainz?: string;
     spotify?: string;
   };
-  // TODO: also add these fields?
+  // TODO: also add images?
   // images: string[];
 };
 
@@ -41,9 +41,8 @@ type Venue = {
         latitude: string;
       }
     | undefined;
-  // TODO: also add these fields?
+  // TODO: also add images?
   // images: string[];
-  // url: string;
 };
 
 /**

@@ -90,7 +90,6 @@ export class TicketportalService implements ICronJobService {
         const venueAddress = await venueBlock.$eval("::-p-xpath(./div[@itemprop='address']//span)", (elem) =>
           elem.textContent?.trim()
         );
-        const soldOutBox = await ticket.$("div.ticket-info > div.status > div.status-content");
 
         if (!name || !startDate || !venueName || !venueAddress) {
           throw new Error("[" + concertUrl + "] - Missing event data.");
@@ -100,6 +99,7 @@ export class TicketportalService implements ICronJobService {
         const artists: { name: string; country: string }[] = [];
         // TODO: extract door time from the description
         const doors = "";
+        const soldOutBox = await ticket.$("div.ticket-info > div.status > div.status-content");
 
         concertData.push({
           name,
