@@ -8,7 +8,7 @@ import {
 } from "@semantic-web-concerts/core";
 import type { Queue } from "bullmq";
 import { addDays, hoursToMilliseconds, set } from "date-fns";
-import { launch, type Page } from "puppeteer";
+import { launch, type Browser, type Page } from "puppeteer";
 import type { ConfigSchema } from "../../config/schema";
 import type { ICronJobService } from "../cron-job-service.types";
 
@@ -48,6 +48,75 @@ export class TicketportalService implements ICronJobService {
     return this.#isInProcess;
   }
 
+  async #getVenueData(
+    venueUrl: string,
+    browser: Browser
+  ): Promise<ConcertEventsQueueDataType["event"]["venues"][number]> {
+    if (!venueUrl) {
+      throw new Error("Venue URL is undefined!");
+    }
+
+    const venuePage = await browser.newPage();
+    let venue: ConcertEventsQueueDataType["event"]["venues"][number];
+
+    try {
+      if (!(await venuePage.goto(venueUrl))) {
+        throw new Error("Cannot navigate to the URL: " + venueUrl);
+      }
+
+      const name = await venuePage.$eval(".detail-content > h1", (elem) => elem.textContent?.trim());
+
+      if (!name) {
+        throw new Error("Missing venue name.");
+      }
+
+      const addressBlock = await venuePage.$(
+        "::-p-xpath(//div[contains(@class, 'detail-content')]/section[@id='shortInfo']/descendant::td[2])"
+      );
+
+      if (!addressBlock) {
+        throw new Error("Missing venue address data!");
+      }
+
+      const [city, addressToProcess] = (await addressBlock.evaluate((elem) => (elem as HTMLAnchorElement).innerText))
+        .split(",")
+        .map((e) => e.trim());
+      const address = addressToProcess?.split("\n").at(0)?.trim();
+
+      if (!city) {
+        throw new Error("Missing venue city.");
+      }
+      if (!address) {
+        throw new Error("Missing venue address.");
+      }
+
+      venue = {
+        name,
+        city,
+        address,
+        location: undefined,
+      };
+
+      const mapUrl = await addressBlock.$eval("a", (elem) => elem.href);
+      const daddr = new URL(mapUrl).searchParams.get("daddr");
+
+      if (daddr) {
+        const [latitude, longitude] = daddr.split(",").map((coor) => coor.trim());
+
+        if (latitude && longitude) {
+          venue.location = {
+            latitude,
+            longitude,
+          };
+        }
+      }
+    } finally {
+      await venuePage.close();
+    }
+
+    return venue;
+  }
+
   async #getConcertEvents(
     page: Page,
     concertUrl: string,
@@ -74,10 +143,20 @@ export class TicketportalService implements ICronJobService {
         const name = await ticket.$eval(".ticket-info > .detail > .event", (elem) =>
           elem.firstChild?.textContent?.trim()
         );
+
+        if (!name) {
+          throw new Error("[" + concertUrl + "] - Missing event name.");
+        }
+
         const startDate = await ticket.$eval(
           "::-p-xpath(.//div[contains(@class, 'ticket-date')]/div[@class='date']/div[@class='day'])",
           (elem) => elem.getAttribute("content")
         );
+
+        if (!startDate) {
+          throw new Error("[" + concertUrl + "] - Missing event start date.");
+        }
+
         const venueBlock = await ticket.$(
           "::-p-xpath(.//div[contains(@class, 'ticket-info')]/div[@class='detail']/div[@itemprop='location'])"
         );
@@ -86,19 +165,34 @@ export class TicketportalService implements ICronJobService {
           throw new Error("[" + concertUrl + "] - Missing venue info.");
         }
 
-        const venueName = await venueBlock.$eval("a.building > span", (elem) => elem.textContent?.trim());
-        const venueAddress = await venueBlock.$eval("::-p-xpath(./div[@itemprop='address']//span)", (elem) =>
-          elem.textContent?.trim()
-        );
+        const venueUrl = await venueBlock.$eval("a.building", (elem) => (elem as HTMLAnchorElement).href.trim());
+        let venueData: ConcertEventsQueueDataType["event"]["venues"][number];
 
-        if (!name || !startDate || !venueName || !venueAddress) {
-          throw new Error("[" + concertUrl + "] - Missing event data.");
+        try {
+          venueData = await this.#getVenueData(venueUrl, page.browser());
+        } catch (e) {
+          this.#logger.error(e);
+          const venueName = await venueBlock.$eval("a.building > span", (elem) => elem.textContent?.trim());
+          const venueCity = await venueBlock.$eval("::-p-xpath(./div[@itemprop='address']//span)", (elem) =>
+            elem.textContent?.trim()
+          );
+
+          if (!venueName || !venueCity) {
+            throw new Error("[" + concertUrl + "] - Missing venue data.");
+          }
+
+          venueData = {
+            name: venueName,
+            city: venueCity,
+            address: undefined,
+            location: undefined,
+          };
         }
 
         // TODO: extract artists (their name and country) from the event name or from the event description
         const artists: { name: string; country: string }[] = [];
         // TODO: extract door time from the description
-        const doors = "";
+        const doors = undefined;
         const soldOutBox = await ticket.$("div.ticket-info > div.status > div.status-content");
 
         concertData.push({
@@ -109,13 +203,7 @@ export class TicketportalService implements ICronJobService {
             start: startDate,
             end: undefined,
           },
-          venues: [
-            {
-              name: venueName,
-              address: venueAddress,
-              location: undefined,
-            },
-          ],
+          venues: [{ ...venueData }],
           isOnSale: soldOutBox === null,
         });
       } catch (e) {

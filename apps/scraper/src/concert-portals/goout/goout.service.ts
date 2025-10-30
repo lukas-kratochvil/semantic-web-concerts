@@ -132,8 +132,21 @@ export class GooutService implements ICronJobService {
 
     const getVenueSelector = (valueName: string) =>
       `::-p-xpath(//section[contains(@class, 'py-1')]//div[contains(@class, 'info-item')]/div/span[text()='${valueName}']/parent::div/parent::div/div[2])` as const;
-    const venueName = await page.$eval(getVenueSelector("Venue"), (elem) => (elem as HTMLAnchorElement).innerText);
-    const venueAddress = await page.$eval(getVenueSelector("Address"), (elem) => (elem as HTMLAnchorElement).innerText);
+    const venueName = await page.$eval(getVenueSelector("Venue"), (elem) =>
+      (elem as HTMLAnchorElement).innerText.trim()
+    );
+    const [venueAddress, venueCity] = (
+      await page.$eval(getVenueSelector("Address"), (elem) => (elem as HTMLAnchorElement).innerText)
+    )
+      .split(",")
+      .map((e) => e.trim());
+
+    if (!venueCity) {
+      throw new Error("Missing venue city.");
+    }
+    if (!venueAddress) {
+      throw new Error("Missing venue address.");
+    }
 
     const [isOnSale, ticketsUrl] = await page.$eval(
       ".ticket-button",
@@ -156,6 +169,7 @@ export class GooutService implements ICronJobService {
         venues: [
           {
             name: venueName,
+            city: venueCity,
             address: venueAddress,
             location: undefined,
           },

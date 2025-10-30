@@ -34,7 +34,8 @@ type Artist = {
  */
 type Venue = {
   name: string;
-  address: string;
+  city: string;
+  address: string | undefined;
   location:
     | {
         longitude: string;
