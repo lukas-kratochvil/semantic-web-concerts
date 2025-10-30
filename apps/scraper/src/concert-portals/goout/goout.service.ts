@@ -49,21 +49,21 @@ export class GooutService implements ICronJobService {
     return this.#isInProcess;
   }
 
-  async #getArtistSpotifyUrl(browser: Browser, url: string | undefined) {
-    if (!url) {
+  async #getArtistExternalUrl(type: "Spotify", browser: Browser, artistUrl: string | undefined) {
+    if (!artistUrl) {
       return undefined;
     }
 
     const artistPage = await browser.newPage();
-    let spotifyUrl: string | undefined;
+    let externalUrl: string | undefined;
 
     try {
-      if (!(await artistPage.goto(url))) {
-        throw new Error("Cannot navigate to the URL: " + url);
+      if (!(await artistPage.goto(artistUrl))) {
+        throw new Error("Cannot navigate to the URL: " + artistUrl);
       }
 
-      spotifyUrl = await artistPage.$eval(
-        "::-p-xpath(//header/descendant::ul[contains(@class, 'links-row')]/descendant::a[contains(@aria-label, 'Spotify')])",
+      externalUrl = await artistPage.$eval(
+        `::-p-xpath(//header/descendant::ul[contains(@class, 'links-row')]/descendant::a[contains(@aria-label, '${type}')])`,
         (elem) => (elem as HTMLAnchorElement).href
       );
     } catch {
@@ -72,7 +72,7 @@ export class GooutService implements ICronJobService {
       await artistPage.close();
     }
 
-    return spotifyUrl?.replace("?autoplay=true", "");
+    return externalUrl?.replace("?autoplay=true", "").trim();
   }
 
   async #getConcertEvent(page: Page, concertUrl: string): Promise<ConcertEventsQueueDataType> {
@@ -87,7 +87,8 @@ export class GooutService implements ICronJobService {
           name: await artistDiv.$eval("::-p-xpath(./*[1])", (elem) => elem.textContent?.trim()),
           country: await artistDiv.$eval("::-p-xpath(./*[2])", (elem) => elem.textContent?.trim()),
           externalUrls: {
-            spotify: await this.#getArtistSpotifyUrl(
+            spotify: await this.#getArtistExternalUrl(
+              "Spotify",
               page.browser(),
               await artistDiv.$eval("::-p-xpath(./*[1])", (elem) => (elem as HTMLAnchorElement).href)
             ),
