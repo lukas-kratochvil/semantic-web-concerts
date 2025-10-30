@@ -191,8 +191,17 @@ export class TicketportalService implements ICronJobService {
 
         // TODO: extract artists (their name and country) from the event name or from the event description
         const artists: { name: string; country: string }[] = [];
-        // TODO: extract door time from the description
-        const doors = undefined;
+
+        let doors: string | undefined = undefined;
+        try {
+          doors = await ticket.$eval(
+            "::-p-xpath(.//div[contains(@class, 'ticket-info')]/div[@class='detail']/div[@itemprop='name']/div[contains(@class, 'popiska')])",
+            (elem) => (elem as HTMLDivElement).innerText.match(/\b(?:doors|vstup)\s+(\d{1,2}:\d{2})/i)?.at(1)
+          );
+        } catch {
+          /* doors time not found */
+        }
+
         const soldOutBox = await ticket.$("div.ticket-info > div.status > div.status-content");
 
         concertData.push({
