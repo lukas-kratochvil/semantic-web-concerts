@@ -190,7 +190,18 @@ export class TicketportalService implements ICronJobService {
         }
 
         // TODO: extract artists (their name and country) from the event name or from the event description
-        const artists: { name: string; country: string }[] = [];
+        const artists: ConcertEventsQueueDataType["event"]["artists"] = [];
+
+        if (!["Vážná hudba", "Pro děti", "Párty", "Disco"].includes(genreName)) {
+          artists.push({
+            name: eventName
+              .split(/[,:;(-]/)
+              .at(0)
+              ?.trim() as string,
+            country: undefined,
+            externalUrls: {},
+          });
+        }
 
         let doors: string | undefined = undefined;
         try {
@@ -206,7 +217,7 @@ export class TicketportalService implements ICronJobService {
 
         concertData.push({
           name,
-          artists: artists.map((artist) => ({ name: artist.name, country: artist.country, externalUrls: {} })),
+          artists,
           dateTime: {
             doors,
             start: startDate,
