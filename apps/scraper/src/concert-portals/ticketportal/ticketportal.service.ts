@@ -140,11 +140,11 @@ export class TicketportalService implements ICronJobService {
 
     for (const ticket of tickets) {
       try {
-        const name = await ticket.$eval(".ticket-info > .detail > .event", (elem) =>
+        const eventName = await ticket.$eval(".ticket-info > .detail > .event", (elem) =>
           elem.firstChild?.textContent?.trim()
         );
 
-        if (!name) {
+        if (!eventName) {
           throw new Error("[" + concertUrl + "] - Missing event name.");
         }
 
@@ -170,8 +170,7 @@ export class TicketportalService implements ICronJobService {
 
         try {
           venueData = await this.#getVenueData(venueUrl, page.browser());
-        } catch (e) {
-          this.#logger.error(e);
+        } catch {
           const venueName = await venueBlock.$eval("a.building > span", (elem) => elem.textContent?.trim());
           const venueCity = await venueBlock.$eval("::-p-xpath(./div[@itemprop='address']//span)", (elem) =>
             elem.textContent?.trim()
@@ -216,7 +215,7 @@ export class TicketportalService implements ICronJobService {
         const soldOutBox = await ticket.$("div.ticket-info > div.status > div.status-content");
 
         concertData.push({
-          name,
+          name: eventName,
           artists,
           dateTime: {
             doors,
@@ -341,13 +340,13 @@ export class TicketportalService implements ICronJobService {
             }
           }
         } catch (e) {
-          this.#logger.error(e instanceof Error ? e.message : e);
+          this.#logger.error(e instanceof Error ? e.message : e, e);
         } finally {
           multipleEventDatesChecker.clear();
         }
       }
     } catch (e) {
-      this.#logger.error(e instanceof Error ? e.message : e);
+      this.#logger.error(e instanceof Error ? e.message : e, e);
     } finally {
       await browser.close();
       this.#isInProcess = false;

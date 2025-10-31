@@ -76,7 +76,7 @@ export class GooutService implements ICronJobService {
   }
 
   async #getConcertEvent(page: Page, concertUrl: string): Promise<ConcertEventsQueueDataType> {
-    const name = await page.$eval("h1", (elem) => elem.innerText.trim());
+    const eventName = await page.$eval("h1", (elem) => elem.innerText.trim());
 
     const artistsDivs = await page.$$(
       "::-p-xpath(//h2[text()='Performing artists']/following-sibling::div[contains(@class, 'row')]/div/div[contains(@class, 'profile-box')]/div[contains(@class, 'content')]/div[1])"
@@ -103,7 +103,7 @@ export class GooutService implements ICronJobService {
         `::-p-xpath(//section[contains(@class, 'py-1')]//div[contains(@class, 'info-item')]/div/span[text()='Doors']/parent::div/parent::div/div[2]/time)` as const,
         (elem) => (elem as HTMLTimeElement).dateTime.trim()
       );
-    } catch (e) {
+    } catch {
       /* doors not found */
     }
     const [datetime1, datetime2] = await page.$$eval(
@@ -158,7 +158,7 @@ export class GooutService implements ICronJobService {
         eventUrl: concertUrl,
       },
       event: {
-        name,
+        name: eventName,
         artists,
         dateTime: {
           doors: doorsDatetime,
@@ -276,12 +276,12 @@ export class GooutService implements ICronJobService {
           // load new concerts
           await showMoreButton.click({ delay: 2_000 });
         } catch (e) {
-          this.#logger.error(e instanceof Error ? e.message : e);
+          this.#logger.error(e instanceof Error ? e.message : e, e);
           break;
         }
       }
     } catch (e) {
-      this.#logger.error(e instanceof Error ? e.message : e);
+      this.#logger.error(e instanceof Error ? e.message : e, e);
     } finally {
       await browser.close();
       this.#isInProcess = false;
