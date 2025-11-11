@@ -1,6 +1,9 @@
 # Dependencies
 node_modules
 
+# Data
+data
+
 # Build outputs
 build
 dist
