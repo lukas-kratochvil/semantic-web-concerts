@@ -3,11 +3,11 @@
   "private": true,
   "packageManager": "pnpm@9.12.1",
   "scripts": {
-    "build": "turbo run build",
+    "build": "turbo run build --continue=dependencies-successful",
     "start:dev": "turbo run start:dev",
-    "format": "turbo run format",
-    "lint": "turbo run lint",
-    "tidy": "turbo run tidy"
+    "format": "turbo run format --continue=dependencies-successful",
+    "lint": "turbo run lint --continue=dependencies-successful",
+    "tidy": "turbo run tidy --continue=dependencies-successful"
   },
   "devDependencies": {
     "prettier": "^3.5.3",

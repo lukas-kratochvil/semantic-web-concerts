@@ -23,9 +23,7 @@ export default defineConfig(
         filterFromPaths: [".spec.", ".test."],
       }],
 
-      "@darraghor/nestjs-typed/validated-non-primitive-property-needs-type-decorator": ["error", {
-        additionalTypeDecorators: ["Field", "HideField"],
-      }],
+      "@darraghor/nestjs-typed/validated-non-primitive-property-needs-type-decorator": "error",
     },
   }
 );
