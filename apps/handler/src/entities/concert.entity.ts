@@ -1,0 +1,64 @@
+import { Type } from "class-transformer";
+import {
+  Allow,
+  ArrayNotEmpty,
+  ArrayUnique,
+  IsArray,
+  IsBoolean,
+  IsMilitaryTime,
+  IsString,
+  IsUrl,
+  ValidateNested,
+} from "class-validator";
+import { IsDateMoreInFutureThan, IsFutureDate } from "../validation/decorators";
+import { ArtistEntity } from "./artist.entity";
+import { VenueEntity } from "./venue.entity";
+
+export class ConcertEntity {
+  @IsString()
+  name: string;
+
+  @IsUrl()
+  url: string;
+
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayUnique<ArtistEntity>((elem) => elem.name)
+  @ValidateNested({ each: true })
+  @Type(() => ArtistEntity)
+  artists: ArtistEntity[];
+
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayUnique<VenueEntity>((elem) => elem.name)
+  @ValidateNested({ each: true })
+  @Type(() => VenueEntity)
+  venues: VenueEntity[];
+
+  // TODO: is it correct validation?
+  @IsMilitaryTime()
+  doorTime: string;
+
+  @Allow() // only to satisfy this rule "@darraghor/nestjs-typed/all-properties-are-whitelisted", because it does not recognize custom validators implemented with class-validator
+  @IsFutureDate()
+  @Type(() => Date)
+  startDate: Date;
+
+  @Allow() // only to satisfy this rule "@darraghor/nestjs-typed/all-properties-are-whitelisted", because it does not recognize custom validators implemented with class-validator
+  @IsFutureDate()
+  @IsDateMoreInFutureThan("startDate")
+  @Type(() => Date)
+  endDate: Date;
+
+  @IsBoolean()
+  isOnSale: boolean;
+
+  @IsUrl()
+  ticketsUrl: boolean;
+
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsUrl(undefined, { each: true })
+  @ArrayUnique<string>()
+  sameAs: string[];
+}
