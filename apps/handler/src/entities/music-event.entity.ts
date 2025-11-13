@@ -4,17 +4,18 @@ import {
   ArrayNotEmpty,
   ArrayUnique,
   IsArray,
-  IsBoolean,
   IsMilitaryTime,
   IsString,
   IsUrl,
   ValidateNested,
 } from "class-validator";
+import type { IMusicEvent } from "../interfaces/music-event.interface";
 import { IsDateMoreInFutureThan, IsFutureDate } from "../validation/decorators";
 import { ArtistEntity } from "./artist.entity";
+import { TicketEntity } from "./ticket.entity";
 import { VenueEntity } from "./venue.entity";
 
-export class ConcertEntity {
+export class MusicEventEntity implements IMusicEvent {
   @IsString()
   name: string;
 
@@ -50,15 +51,7 @@ export class ConcertEntity {
   @Type(() => Date)
   endDate: Date;
 
-  @IsBoolean()
-  isOnSale: boolean;
-
-  @IsUrl()
-  ticketsUrl: boolean;
-
-  @IsArray()
-  @ArrayNotEmpty()
-  @IsUrl(undefined, { each: true })
-  @ArrayUnique<string>()
-  sameAs: string[];
+  @ValidateNested()
+  @Type(() => TicketEntity)
+  ticket: TicketEntity;
 }

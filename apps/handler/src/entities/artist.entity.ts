@@ -1,6 +1,7 @@
 import { IsArray, ArrayNotEmpty, ArrayUnique, IsString, IsUrl } from "class-validator";
+import type { IArtist } from "../interfaces/artist.interface";
 
-export class ArtistEntity {
+export class ArtistEntity implements IArtist {
   @IsString()
   name: string;
 

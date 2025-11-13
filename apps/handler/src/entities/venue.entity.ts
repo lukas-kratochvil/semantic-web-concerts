@@ -1,8 +1,9 @@
 import { Type } from "class-transformer";
 import { IsLatitude, IsLongitude, IsString, ValidateNested } from "class-validator";
+import type { IVenue } from "../interfaces/venue.interface";
 import { AddressEntity } from "./address.entity";
 
-export class VenueEntity {
+export class VenueEntity implements IVenue {
   @IsString()
   name: string;
 
