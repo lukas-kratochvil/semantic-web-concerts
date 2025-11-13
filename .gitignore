@@ -1,8 +1,8 @@
+# RDF data
+rdf-data/
+
 # Dependencies
 node_modules
-
-# Data
-data
 
 # Build outputs
 build

@@ -1,4 +1,8 @@
+# RDF data
+rdf-data/
+
 # Git
+**/.git/
 **/.gitignore
 **/.gitattributes
 
