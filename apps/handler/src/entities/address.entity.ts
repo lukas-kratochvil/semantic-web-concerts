@@ -1,5 +1,5 @@
+import type { IAddress } from "@semantic-web-concerts/core/interfaces";
 import { IsISO31661Alpha2, IsString } from "class-validator";
-import type { IAddress } from "../interfaces/address.interface";
 
 export class AddressEntity implements IAddress {
   @IsString()

@@ -1,3 +1,4 @@
+import type { IMusicEvent } from "@semantic-web-concerts/core/interfaces";
 import { Type } from "class-transformer";
 import {
   Allow,
@@ -9,7 +10,6 @@ import {
   IsUrl,
   ValidateNested,
 } from "class-validator";
-import type { IMusicEvent } from "../interfaces/music-event.interface";
 import { IsDateMoreInFutureThan, IsFutureDate } from "../validation/decorators";
 import { ArtistEntity } from "./artist.entity";
 import { TicketEntity } from "./ticket.entity";

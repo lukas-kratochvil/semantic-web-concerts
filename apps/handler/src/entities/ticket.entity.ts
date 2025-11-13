@@ -1,6 +1,6 @@
+import { ItemAvailability, type ITicket } from "@semantic-web-concerts/core/interfaces";
 import { Transform } from "class-transformer";
 import { IsEnum, IsUrl } from "class-validator";
-import { type ITicket, ItemAvailability } from "../interfaces/ticket.interface";
 
 export class TicketEntity implements ITicket {
   @IsUrl()

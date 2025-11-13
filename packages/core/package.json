@@ -15,7 +15,16 @@
     "dist"
   ],
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./interfaces": {
+      "types": "./dist/interfaces/index.d.ts",
+      "require": "./dist/interfaces/index.js",
+      "default": "./dist/interfaces/index.js"
+    }
   },
   "devDependencies": {
     "@semantic-web-concerts/eslint-config": "workspace:*",

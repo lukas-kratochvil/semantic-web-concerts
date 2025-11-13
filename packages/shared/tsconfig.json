@@ -4,7 +4,8 @@
     "target": "es2024",
     "outDir": "./dist",
     /* If transpiling with TypeScript (tsc) */
-    "module": "commonjs",
+    "module": "node16",
+    "moduleResolution": "node16",
     /* Library compilation */
     "declaration": true,
     "declarationMap": true,
