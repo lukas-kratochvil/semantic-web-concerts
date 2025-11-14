@@ -101,10 +101,14 @@ export class GooutService implements ICronJobService {
 
     let doorsDatetime: Date | undefined;
     try {
-      doorsDatetime = await page.$eval(
-        `::-p-xpath(//section[contains(@class, 'py-1')]//div[contains(@class, 'info-item')]/div/span[text()='Doors']/parent::div/parent::div/div[2]/time)` as const,
-        (elem) => new Date((elem as HTMLTimeElement).dateTime)
+      const doorsDatetimeStr = await page.$eval(
+        "::-p-xpath(//section[contains(@class, 'py-1')]//div[contains(@class, 'info-item')]/div/span[text()='Doors']/parent::div/parent::div/div[2]/time)",
+        (elem) => elem.getAttribute("datetime")?.trim()
       );
+
+      if (doorsDatetimeStr) {
+        doorsDatetime = new Date(doorsDatetimeStr);
+      }
     } catch {
       /* doors not found */
     }

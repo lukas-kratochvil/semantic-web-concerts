@@ -1,5 +1,8 @@
 type CronJobType = "interval" | "timeout";
 
+/**
+ * Scraper of a concert portal must implement this interface in order to be taken into account and launched.
+ */
 export interface ICronJobService {
   /**
    * The name of the action.

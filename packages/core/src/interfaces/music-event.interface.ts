@@ -27,7 +27,7 @@ export interface IMusicEvent {
   venues: IVenue[];
 
   /**
-   * The time admission will commence.
+   * The time admission will commence. In the [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format.
    */
   doorTime: Date | undefined;
 

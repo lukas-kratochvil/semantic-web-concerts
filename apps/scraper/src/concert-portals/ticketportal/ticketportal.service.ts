@@ -186,7 +186,7 @@ export class TicketportalService implements ICronJobService {
 
         const startDateStr = await ticket.$eval(
           "::-p-xpath(.//div[contains(@class, 'ticket-date')]/div[@class='date']/div[@class='day'])",
-          (elem) => elem.getAttribute("content")
+          (elem) => elem.getAttribute("content")?.trim()
         );
 
         if (!startDateStr) {
