@@ -1,17 +1,19 @@
+import { TZDateMini } from "@date-fns/tz";
 import { HttpService } from "@nestjs/axios";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Injectable, Logger } from "@nestjs/common";
 import {
-  type ConcertEventsQueueDataType,
-  type ConcertEventsQueueNameType,
-  ConcertEventsQueue,
+  type MusicEventsQueueDataType,
+  type MusicEventsQueueNameType,
+  MusicEventsQueue,
 } from "@semantic-web-concerts/core";
+import { ItemAvailability } from "@semantic-web-concerts/core/interfaces";
 import { AxiosError } from "axios";
 import type { Queue } from "bullmq";
 import { addDays, max, set } from "date-fns";
 import { catchError, firstValueFrom } from "rxjs";
 import type { ICronJobService } from "../cron-job-service.types";
-import { TicketmasterResponse } from "./ticketmaster-api.types";
+import { TicketmasterResponse, type Dates } from "./ticketmaster-api.types";
 
 @Injectable()
 export class TicketmasterService implements ICronJobService {
@@ -24,11 +26,11 @@ export class TicketmasterService implements ICronJobService {
   readonly jobType = "interval";
 
   constructor(
-    @InjectQueue(ConcertEventsQueue.name)
-    private readonly concertEventsQueue: Queue<
-      ConcertEventsQueueDataType,
-      ConcertEventsQueueDataType,
-      ConcertEventsQueueNameType
+    @InjectQueue(MusicEventsQueue.name)
+    private readonly musicEventsQueue: Queue<
+      MusicEventsQueueDataType,
+      MusicEventsQueueDataType,
+      MusicEventsQueueNameType
     >,
     private readonly http: HttpService
   ) {}
@@ -63,6 +65,20 @@ export class TicketmasterService implements ICronJobService {
     this.#runDate = max([nextAvailableDate, nextPeriodDate]);
   }
 
+  #getEventStartDate(dates: Dates): Date {
+    if (dates.start.dateTime) {
+      return new Date(dates.start.dateTime.trim());
+    }
+    if (dates.start.localDate && dates.start.localTime) {
+      const localDateTimeStr = `${dates.start.localDate}T${dates.start.localTime}`;
+      return new TZDateMini(localDateTimeStr, dates.timezone);
+    }
+    if (dates.access?.startDateTime) {
+      return new Date(dates.access.startDateTime);
+    }
+    return new TZDateMini(dates.start.localDate, dates.timezone);
+  }
+
   async run() {
     // The default quota is 5000 API calls per day and rate limitation of 5 requests per second.
     // Deep Paging: only supports retrieving the 1000th item. i.e. (size * page < 1000).
@@ -74,7 +90,7 @@ export class TicketmasterService implements ICronJobService {
             countryCode: "cz",
             classificationName: ["music"],
             sort: "date,name,asc",
-            locale: "cs-CZ", // values adjusted for Czechia, f.e. URLs
+            locale: "en", // values adjusted to a given locale (names, URLs etc.)
           },
         })
         .pipe(
@@ -120,55 +136,53 @@ export class TicketmasterService implements ICronJobService {
 
     this.#currentPage++;
 
-    // extract concert data
-    const concerts = data._embedded.events.map<ConcertEventsQueueDataType>((event) => ({
-      meta: {
-        portal: "ticketmaster",
-        eventUrl: event.url,
-      },
-      event: {
-        name: event.name.trim(),
-        artists: event._embedded.attractions
-          .filter(
-            (a) =>
-              !a.classifications
-                .map((c) => c.subType.name)
-                .flat()
-                .includes("Koncert")
-          )
-          .map((a) => ({
-            name: a.name.trim(),
-            country: undefined,
-            externalUrls: {
-              musicbrainz: a.externalLinks?.musicbrainz?.at(0)?.url.trim(),
-              spotify: a.externalLinks?.spotify?.at(0)?.url.trim(),
+    // extract music event data
+    const musicEvents = data._embedded.events.map<MusicEventsQueueDataType>(
+      (event): MusicEventsQueueDataType => ({
+        meta: {
+          portal: "ticketmaster",
+        },
+        event: {
+          name: event.name.trim(),
+          url: event.url,
+          doorTime: event.dates.access ? new Date(event.dates.access.startDateTime.trim()) : undefined,
+          startDate: this.#getEventStartDate(event.dates),
+          endDate: undefined,
+          artists: event._embedded.attractions
+            .filter(
+              (a) =>
+                !a.classifications
+                  .map((c) => c.subType.name)
+                  .flat()
+                  .includes("Concert")
+            )
+            .map((a) => ({
+              name: a.name.trim(),
+              genres: [...new Set(a.classifications.map((c) => [c.genre.name.trim(), c.subGenre.name.trim()]).flat())],
+              sameAs: a.externalLinks
+                ? Object.values(a.externalLinks)
+                    .flat()
+                    .map((url) => url.url)
+                : [],
+            })),
+          venues: event._embedded.venues.map((v) => ({
+            name: v.name.trim(),
+            latitude: v.location.latitude.trim(),
+            longitude: v.location.longitude.trim(),
+            address: {
+              country: "CZ",
+              locality: v.city.name.trim(),
+              street: v.address.line1.trim(),
             },
           })),
-        genres: [...new Set(event.classifications.map((c) => [c.genre.name, c.subGenre.name]).flat())].map((g) => ({
-          name: g.trim(),
-        })),
-        dateTime: {
-          doors: event.dates.access?.startDateTime.trim(),
-          // `event.dates.start.dateTime` not present if f.e. `event.dates.status.code === 'postponed'`
-          start: event.dates.start.dateTime?.trim() ?? event.dates.start.localDate.trim(),
-          end: undefined,
-        },
-        venues: event._embedded.venues.map((v) => ({
-          name: v.name.trim(),
-          city: v.city.name.trim(),
-          address: v.address.line1.trim(),
-          location: {
-            longitude: v.location.longitude.trim(),
-            latitude: v.location.latitude.trim(),
+          ticket: {
+            url: event.url.trim(),
+            availability: event.dates.status.code === "onsale" ? ItemAvailability.InStock : ItemAvailability.SoldOut,
           },
-          url: v.url.trim(),
-        })),
-        ticketsUrl: event.url.trim(),
-        // TODO: event.dates.status.code: 'onsale', 'offsale', 'cancelled', 'postponed', 'rescheduled'
-        isOnSale: event.dates.status.code === "onsale",
-      },
-    }));
+        },
+      })
+    );
     // add data to the queue
-    await this.concertEventsQueue.addBulk(concerts.map((concert) => ({ name: "ticketmaster", data: concert })));
+    await this.musicEventsQueue.addBulk(musicEvents.map((event) => ({ name: "ticketmaster", data: event })));
   }
 }

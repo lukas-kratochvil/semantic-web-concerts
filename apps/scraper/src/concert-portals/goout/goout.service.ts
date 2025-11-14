@@ -2,11 +2,11 @@ import { InjectQueue } from "@nestjs/bullmq";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
-  type ConcertEventsQueueDataType,
-  type ConcertEventsQueueNameType,
-  ConcertEventsQueue,
+  type MusicEventsQueueDataType,
+  type MusicEventsQueueNameType,
+  MusicEventsQueue,
 } from "@semantic-web-concerts/core";
-import type { StrictOmit } from "@semantic-web-concerts/shared";
+import { ItemAvailability, type IArtist } from "@semantic-web-concerts/core/interfaces";
 import { Queue } from "bullmq";
 import { addDays, parse, set } from "date-fns";
 import { launch, type Browser, type Page } from "puppeteer";
@@ -27,11 +27,11 @@ export class GooutService implements ICronJobService {
   readonly jobType = "timeout";
 
   constructor(
-    @InjectQueue(ConcertEventsQueue.name)
-    private readonly concertEventsQueue: Queue<
-      ConcertEventsQueueDataType,
-      ConcertEventsQueueDataType,
-      ConcertEventsQueueNameType
+    @InjectQueue(MusicEventsQueue.name)
+    private readonly musicEventsQueue: Queue<
+      MusicEventsQueueDataType,
+      MusicEventsQueueDataType,
+      MusicEventsQueueNameType
     >,
     config: ConfigService<ConfigSchema, true>
   ) {
@@ -49,33 +49,40 @@ export class GooutService implements ICronJobService {
     return this.#isInProcess;
   }
 
-  async #getArtistExternalUrl(type: "Spotify", browser: Browser, artistUrl: string | undefined) {
-    if (!artistUrl) {
-      return undefined;
-    }
-
+  async #getArtist(browser: Browser, artistUrl: string): Promise<IArtist | null> {
     const artistPage = await browser.newPage();
-    let externalUrl: string | undefined;
+    let name: string;
+    let genres: string[];
+    let sameAs: string[];
 
     try {
       if (!(await artistPage.goto(artistUrl))) {
         throw new Error("Cannot navigate to the URL: " + artistUrl);
       }
 
-      externalUrl = await artistPage.$eval(
-        `::-p-xpath(//header/descendant::ul[contains(@class, 'links-row')]/descendant::a[contains(@aria-label, '${type}')])`,
-        (elem) => (elem as HTMLAnchorElement).href
+      name = await artistPage.$eval("header h1", (elem) => elem.innerText.trim());
+      sameAs = await artistPage.$$eval(
+        `::-p-xpath(//header/descendant::ul[contains(@class, 'links-row')]/descendant::a)`,
+        (elem) => (elem as HTMLAnchorElement[]).map((a) => a.href)
+      );
+      genres = await artistPage.$$eval(
+        `::-p-xpath(//section[contains(@class, 'py-4')]/p/span[not(contains(@class, 'tags-title'))]/a)`,
+        (elem) => (elem as HTMLAnchorElement[]).map((a) => a.innerText.trim())
       );
     } catch {
-      /* artist's Spotify account link not found */
-    } finally {
       await artistPage.close();
+      return null;
     }
 
-    return externalUrl?.replace("?autoplay=true", "").trim();
+    await artistPage.close();
+    return {
+      name,
+      genres,
+      sameAs,
+    };
   }
 
-  async #getConcertEvent(page: Page, concertUrl: string): Promise<ConcertEventsQueueDataType> {
+  async #getMusicEvent(page: Page, musicEventUrl: string): Promise<MusicEventsQueueDataType> {
     const eventName = await page.$eval("h1", (elem) => elem.innerText.trim());
 
     const artistsDivs = await page.$$(
@@ -83,25 +90,20 @@ export class GooutService implements ICronJobService {
     );
     const artists = (
       await Promise.all(
-        artistsDivs.map(async (artistDiv) => ({
-          name: await artistDiv.$eval("::-p-xpath(./*[1])", (elem) => elem.textContent?.trim()),
-          country: await artistDiv.$eval("::-p-xpath(./*[2])", (elem) => elem.textContent?.trim()),
-          externalUrls: {
-            spotify: await this.#getArtistExternalUrl(
-              "Spotify",
-              page.browser(),
-              await artistDiv.$eval("::-p-xpath(./*[1])", (elem) => (elem as HTMLAnchorElement).href)
-            ),
-          },
-        }))
+        artistsDivs.map(async (artistDiv) =>
+          this.#getArtist(
+            page.browser(),
+            await artistDiv.$eval("::-p-xpath(./*[1])", (elem) => (elem as HTMLAnchorElement).href)
+          )
+        )
       )
-    ).filter((artist): artist is StrictOmit<typeof artist, "name"> & { name: string } => artist.name !== undefined);
+    ).filter((artist) => artist !== null);
 
-    let doorsDatetime: string | undefined;
+    let doorsDatetime: Date | undefined;
     try {
       doorsDatetime = await page.$eval(
         `::-p-xpath(//section[contains(@class, 'py-1')]//div[contains(@class, 'info-item')]/div/span[text()='Doors']/parent::div/parent::div/div[2]/time)` as const,
-        (elem) => (elem as HTMLTimeElement).dateTime.trim()
+        (elem) => new Date((elem as HTMLTimeElement).dateTime)
       );
     } catch {
       /* doors not found */
@@ -119,16 +121,10 @@ export class GooutService implements ICronJobService {
     const getEndDatetime = (value: string) => {
       // `parse` returns an Invalid Date if the date-string cannot be parsed (Invalid Date is a Date, whose time value is NaN.)
       const date = parse(value, "dd/MM/yyyy", new Date().setHours(0, 0, 0, 0));
-      return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
+      return Number.isNaN(date.getTime()) ? undefined : date;
     };
-    const startDatetime = datetime1;
+    const startDatetime = new Date(datetime1);
     const endDatetime = datetime2 ? getEndDatetime(datetime2) : undefined;
-
-    const genresNames = (
-      await page.$$eval("div.py-2 > div.container > div.row a > span", (elems) =>
-        elems.map((elem) => elem.innerText.trim())
-      )
-    ).filter((genreName) => genreName !== null);
 
     const getVenueSelector = (valueName: string) =>
       `::-p-xpath(//section[contains(@class, 'py-1')]//div[contains(@class, 'info-item')]/div/span[text()='${valueName}']/parent::div/parent::div/div[2])` as const;
@@ -148,34 +144,37 @@ export class GooutService implements ICronJobService {
       throw new Error("Missing venue address.");
     }
 
-    const [isOnSale, ticketsUrl] = await page.$eval(
-      ".ticket-button",
-      (elem) => [elem.textContent?.trim() === "Tickets", (elem as HTMLAnchorElement).href] as const
-    );
+    const [isOnSale, ticketsUrl] = await page.$eval(".ticket-button", (elem) => {
+      const anchor = elem as HTMLAnchorElement;
+      return [anchor.innerText.trim() === "Tickets", anchor.href] as const;
+    });
     return {
       meta: {
         portal: "goout",
-        eventUrl: concertUrl,
       },
       event: {
         name: eventName,
+        url: musicEventUrl,
+        doorTime: doorsDatetime,
+        startDate: startDatetime,
+        endDate: endDatetime,
         artists,
-        dateTime: {
-          doors: doorsDatetime,
-          start: startDatetime,
-          end: endDatetime,
-        },
-        genres: genresNames.map((genreName) => ({ name: genreName })),
         venues: [
           {
             name: venueName,
-            city: venueCity,
-            address: venueAddress,
-            location: undefined,
+            address: {
+              country: "CZ",
+              locality: venueCity,
+              street: venueAddress,
+            },
+            latitude: undefined,
+            longitude: undefined,
           },
         ],
-        isOnSale,
-        ticketsUrl,
+        ticket: {
+          url: ticketsUrl,
+          availability: isOnSale ? ItemAvailability.InStock : ItemAvailability.SoldOut,
+        },
       },
     };
   }
@@ -243,7 +242,7 @@ export class GooutService implements ICronJobService {
         )
         .click();
 
-      // GET CONCERTS
+      // GET MUSIC EVENTS
       while (true) {
         try {
           // scroll to the "Show more" button
@@ -252,28 +251,28 @@ export class GooutService implements ICronJobService {
           );
           await showMoreButton.scroll();
 
-          // get concert links
+          // get music event links
           const linksSelector = "div.event > div.info > a.title";
           await page.waitForSelector(linksSelector);
           const newUrls = await page.$$eval(linksSelector, (links) => links.map((link) => link.href));
 
-          const concertPage = await browser.newPage();
-          // extract concert data and add it to the queue
+          const musicEventPage = await browser.newPage();
+          // extract music event data and add it to the queue
           for (const url of newUrls) {
             try {
-              if (!(await concertPage.goto(url))) {
+              if (!(await musicEventPage.goto(url))) {
                 throw new Error("Cannot navigate to the URL.");
               }
 
-              const concert = await this.#getConcertEvent(concertPage, url);
-              await this.concertEventsQueue.add("goout", concert);
+              const musicEvent = await this.#getMusicEvent(musicEventPage, url);
+              await this.musicEventsQueue.add("goout", musicEvent);
             } catch (e) {
               this.#logger.error("[" + url + "]", e);
             }
           }
 
-          await concertPage.close();
-          // load new concerts
+          await musicEventPage.close();
+          // load new music events
           await showMoreButton.click({ delay: 2_000 });
         } catch (e) {
           this.#logger.error(e instanceof Error ? e.message : e, e);

@@ -1,16 +1,7 @@
 import type { IMusicEvent } from "@semantic-web-concerts/core/interfaces";
 import { Type } from "class-transformer";
-import {
-  Allow,
-  ArrayNotEmpty,
-  ArrayUnique,
-  IsArray,
-  IsMilitaryTime,
-  IsString,
-  IsUrl,
-  ValidateNested,
-} from "class-validator";
-import { IsDateMoreInFutureThan, IsFutureDate } from "../validation/decorators";
+import { Allow, ArrayNotEmpty, ArrayUnique, IsArray, IsString, IsUrl, ValidateNested } from "class-validator";
+import { IsDateEqualOrMoreInFutureThan, IsDateMoreInFutureThan, IsFutureDate } from "../validation/decorators";
 import { ArtistEntity } from "./artist.entity";
 import { TicketEntity } from "./ticket.entity";
 import { VenueEntity } from "./venue.entity";
@@ -36,9 +27,10 @@ export class MusicEventEntity implements IMusicEvent {
   @Type(() => VenueEntity)
   venues: VenueEntity[];
 
-  // TODO: is it correct validation?
-  @IsMilitaryTime()
-  doorTime: string;
+  @Allow() // only to satisfy this rule "@darraghor/nestjs-typed/all-properties-are-whitelisted", because it does not recognize custom validators implemented with class-validator
+  @IsFutureDate()
+  @Type(() => Date)
+  doorTime: Date;
 
   @Allow() // only to satisfy this rule "@darraghor/nestjs-typed/all-properties-are-whitelisted", because it does not recognize custom validators implemented with class-validator
   @IsFutureDate()

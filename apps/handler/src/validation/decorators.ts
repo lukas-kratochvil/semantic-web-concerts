@@ -33,3 +33,24 @@ export const IsDateMoreInFutureThan
       },
     });
   };
+
+export const IsDateEqualOrMoreInFutureThan
+  = (comparedProperty: string, validationOptions?: ValidationOptions) => (object: object, propertyName: string) => {
+    registerDecorator({
+      name: "IsDateEqualOrMoreInFutureThan",
+      target: object.constructor,
+      propertyName: propertyName,
+      constraints: [comparedProperty],
+      options: validationOptions,
+      validator: {
+        validate(value: unknown, args: ValidationArguments) {
+          const [comparedPropertyName] = args.constraints;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const comparedValue = (args.object as any)[comparedPropertyName];
+          return value instanceof Date && comparedValue instanceof Date && value.getTime() >= comparedValue.getTime();
+        },
+        defaultMessage: (args: ValidationArguments) =>
+          `${args.property} must be a Date equal to ${args.constraints.at(0)} or more in the future.`,
+      },
+    });
+  };

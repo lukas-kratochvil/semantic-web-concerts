@@ -1,8 +1,10 @@
+import type { IMusicEvent } from "./interfaces";
+
 /**
- * Concert events queue metadata.
+ * Music events queue metadata.
  */
-export const ConcertEventsQueue = {
-  name: "concert-events",
+export const MusicEventsQueue = {
+  name: "music-events",
   jobs: {
     goout: "goout",
     ticketmaster: "ticketmaster",
@@ -11,70 +13,16 @@ export const ConcertEventsQueue = {
 } as const;
 
 /**
- * Concert event queue job name type.
+ * Music events queue job name type.
  */
-export type ConcertEventsQueueNameType = keyof (typeof ConcertEventsQueue)["jobs"];
+export type MusicEventsQueueNameType = keyof (typeof MusicEventsQueue)["jobs"];
 
 /**
- * Artist entity.
+ * Music events queue job data type.
  */
-type Artist = {
-  name: string;
-  country: string | undefined;
-  externalUrls: {
-    musicbrainz?: string;
-    spotify?: string;
-  };
-  // TODO: also add images?
-  // images: string[];
-};
-
-/**
- * Venue entity.
- */
-type Venue = {
-  name: string;
-  city: string;
-  address: string | undefined;
-  location:
-    | {
-        longitude: string;
-        latitude: string;
-      }
-    | undefined;
-  // TODO: also add images?
-  // images: string[];
-};
-
-/**
- * Genre entity.
- */
-type Genre = { name: string };
-
-/**
- * ConcertEvent entity.
- */
-type ConcertEvent = {
-  name: string;
-  artists: Artist[];
-  genres: Genre[];
-  dateTime: {
-    doors: string | undefined;
-    start: string;
-    end: string | undefined;
-  };
-  venues: Venue[];
-  ticketsUrl: string;
-  isOnSale: boolean;
-};
-
-/**
- * Concert event queue job data type.
- */
-export type ConcertEventsQueueDataType = {
+export type MusicEventsQueueDataType = {
   meta: {
-    portal: ConcertEventsQueueNameType;
-    eventUrl: string;
+    portal: MusicEventsQueueNameType;
   };
-  event: ConcertEvent;
+  event: IMusicEvent;
 };

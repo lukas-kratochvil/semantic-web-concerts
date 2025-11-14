@@ -6,7 +6,7 @@ export class AddressEntity implements IAddress {
   locality: string;
 
   @IsISO31661Alpha2()
-  country: string;
+  country: "CZ";
 
   @IsString()
   street: string;

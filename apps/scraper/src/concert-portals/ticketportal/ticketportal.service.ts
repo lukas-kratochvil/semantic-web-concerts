@@ -1,16 +1,20 @@
+import { TZDateMini } from "@date-fns/tz";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
-  type ConcertEventsQueueDataType,
-  type ConcertEventsQueueNameType,
-  ConcertEventsQueue,
+  type MusicEventsQueueDataType,
+  type MusicEventsQueueNameType,
+  MusicEventsQueue,
 } from "@semantic-web-concerts/core";
+import { ItemAvailability } from "@semantic-web-concerts/core/interfaces";
 import type { Queue } from "bullmq";
-import { addDays, hoursToMilliseconds, set } from "date-fns";
+import { addDays, format, hoursToMilliseconds, set } from "date-fns";
 import { launch, type Browser, type Page } from "puppeteer";
 import type { ConfigSchema } from "../../config/schema";
 import type { ICronJobService } from "../cron-job-service.types";
+
+const CZ_TIMEZONE = "Europe/Prague";
 
 @Injectable()
 export class TicketportalService implements ICronJobService {
@@ -26,11 +30,11 @@ export class TicketportalService implements ICronJobService {
   readonly jobType = "timeout";
 
   constructor(
-    @InjectQueue(ConcertEventsQueue.name)
-    private readonly concertEventsQueue: Queue<
-      ConcertEventsQueueDataType,
-      ConcertEventsQueueDataType,
-      ConcertEventsQueueNameType
+    @InjectQueue(MusicEventsQueue.name)
+    private readonly musicEventsQueue: Queue<
+      MusicEventsQueueDataType,
+      MusicEventsQueueDataType,
+      MusicEventsQueueNameType
     >,
     config: ConfigService<ConfigSchema, true>
   ) {
@@ -48,23 +52,56 @@ export class TicketportalService implements ICronJobService {
     return this.#isInProcess;
   }
 
+  #getEnGenreNames(csGenreNames: string): string[] {
+    return [
+      ...new Set(
+        csGenreNames
+          .split("/")
+          .map((genre) => genre.trim())
+          .filter((genre) => genre !== "")
+          .map((genre) => {
+            switch (genre) {
+              case "Vážná hudba":
+                return "classical";
+              case "Pro děti":
+                return "children's music";
+              case "Hard & Heavy":
+                return "heavy metal";
+              case "Folklor":
+                return "traditional folk music";
+              case "Ethno":
+                return "ethnic electronica";
+              case "Párty":
+                return "party music";
+              case "Alternativa":
+                return "alternative music";
+              case "RnB":
+                return "r&b";
+              default:
+                return genre.toLowerCase();
+            }
+          })
+      ),
+    ];
+  }
+
   async #getVenueData(
     venueUrl: string,
     browser: Browser
-  ): Promise<ConcertEventsQueueDataType["event"]["venues"][number]> {
+  ): Promise<MusicEventsQueueDataType["event"]["venues"][number]> {
     if (!venueUrl) {
       throw new Error("Venue URL is undefined!");
     }
 
     const venuePage = await browser.newPage();
-    let venue: ConcertEventsQueueDataType["event"]["venues"][number];
+    let venue: MusicEventsQueueDataType["event"]["venues"][number];
 
     try {
       if (!(await venuePage.goto(venueUrl))) {
         throw new Error("Cannot navigate to the URL: " + venueUrl);
       }
 
-      const name = await venuePage.$eval(".detail-content > h1", (elem) => elem.textContent?.trim());
+      const name = await venuePage.$eval(".detail-content > h1", (elem) => elem.innerText.trim());
 
       if (!name) {
         throw new Error("Missing venue name.");
@@ -92,9 +129,13 @@ export class TicketportalService implements ICronJobService {
 
       venue = {
         name,
-        city,
-        address,
-        location: undefined,
+        latitude: undefined,
+        longitude: undefined,
+        address: {
+          country: "CZ",
+          locality: city,
+          street: address,
+        },
       };
 
       const mapUrl = await addressBlock.$eval("a", (elem) => elem.href);
@@ -104,10 +145,8 @@ export class TicketportalService implements ICronJobService {
         const [latitude, longitude] = daddr.split(",").map((coor) => coor.trim());
 
         if (latitude && longitude) {
-          venue.location = {
-            latitude,
-            longitude,
-          };
+          venue.latitude = latitude;
+          venue.longitude = longitude;
         }
       }
     } finally {
@@ -117,26 +156,23 @@ export class TicketportalService implements ICronJobService {
     return venue;
   }
 
-  async #getConcertEvents(
+  async #getMusicEvents(
     page: Page,
-    concertUrl: string,
+    musicEventUrl: string,
     genreName: string,
     multipleEventDatesChecker: Set<string>
-  ): Promise<ConcertEventsQueueDataType[]> {
+  ): Promise<MusicEventsQueueDataType[]> {
     const tickets = await page.$$("::-p-xpath(.//section[@id='vstupenky']/div[contains(@id, 'vstupenka-')])");
 
     if (tickets.length > 1) {
-      if (multipleEventDatesChecker.has(concertUrl)) {
+      if (multipleEventDatesChecker.has(musicEventUrl)) {
         return [];
       }
 
-      multipleEventDatesChecker.add(concertUrl);
+      multipleEventDatesChecker.add(musicEventUrl);
     }
 
-    const concertData: Pick<
-      Pick<ConcertEventsQueueDataType, "event">["event"],
-      "name" | "artists" | "dateTime" | "isOnSale" | "venues"
-    >[] = [];
+    const musicEventData: Pick<MusicEventsQueueDataType, "event">["event"][] = [];
 
     for (const ticket of tickets) {
       try {
@@ -145,16 +181,35 @@ export class TicketportalService implements ICronJobService {
         );
 
         if (!eventName) {
-          throw new Error("[" + concertUrl + "] - Missing event name.");
+          throw new Error("[" + musicEventUrl + "] - Missing event name.");
         }
 
-        const startDate = await ticket.$eval(
+        const startDateStr = await ticket.$eval(
           "::-p-xpath(.//div[contains(@class, 'ticket-date')]/div[@class='date']/div[@class='day'])",
           (elem) => elem.getAttribute("content")
         );
 
-        if (!startDate) {
-          throw new Error("[" + concertUrl + "] - Missing event start date.");
+        if (!startDateStr) {
+          throw new Error("[" + musicEventUrl + "] - Missing event start date.");
+        }
+
+        const startDateTime = new TZDateMini(startDateStr, CZ_TIMEZONE);
+
+        let doorsDatetime: Date | undefined;
+        try {
+          const doorsTimeStr = await ticket.$eval(
+            "::-p-xpath(.//div[contains(@class, 'ticket-info')]/div[@class='detail']/div[@itemprop='name']/div[contains(@class, 'popiska')])",
+            (elem) => (elem as HTMLDivElement).innerText.match(/\b(?:doors|vstup)\s+(\d{1,2}:\d{2})/i)?.at(1)
+          );
+
+          if (doorsTimeStr) {
+            const datePart = format(startDateTime, "yyyy-MM-dd");
+            const [hours, minutes] = doorsTimeStr.split(":").map(Number);
+            const doorsDateTimeStr = `${datePart}T${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:00`;
+            doorsDatetime = new TZDateMini(doorsDateTimeStr, CZ_TIMEZONE);
+          }
+        } catch {
+          /* doors time not found */
         }
 
         const venueBlock = await ticket.$(
@@ -162,11 +217,11 @@ export class TicketportalService implements ICronJobService {
         );
 
         if (!venueBlock) {
-          throw new Error("[" + concertUrl + "] - Missing venue info.");
+          throw new Error("[" + musicEventUrl + "] - Missing venue info.");
         }
 
         const venueUrl = await venueBlock.$eval("a.building", (elem) => (elem as HTMLAnchorElement).href.trim());
-        let venueData: ConcertEventsQueueDataType["event"]["venues"][number];
+        let venueData: MusicEventsQueueDataType["event"]["venues"][number];
 
         try {
           venueData = await this.#getVenueData(venueUrl, page.browser());
@@ -177,72 +232,65 @@ export class TicketportalService implements ICronJobService {
           );
 
           if (!venueName || !venueCity) {
-            throw new Error("[" + concertUrl + "] - Missing venue data.");
+            throw new Error("[" + musicEventUrl + "] - Missing venue data.");
           }
 
           venueData = {
             name: venueName,
-            city: venueCity,
-            address: undefined,
-            location: undefined,
+            latitude: undefined,
+            longitude: undefined,
+            address: {
+              country: "CZ",
+              locality: venueCity,
+              street: undefined,
+            },
           };
         }
 
         // TODO: extract artists (their name and country) from the event name or from the event description
-        const artists: ConcertEventsQueueDataType["event"]["artists"] = [];
+        const artistNames: string[] = [];
 
-        if (!["Vážná hudba", "Pro děti", "Párty", "Disco"].includes(genreName)) {
-          artists.push({
-            name: eventName
+        if (["Vážná hudba", "Pro děti", "Párty", "Disco"].includes(genreName)) {
+          artistNames.push(genreName);
+        } else {
+          artistNames.push(
+            eventName
               .split(/[,:;(-]/)
               .at(0)
-              ?.trim() as string,
-            country: undefined,
-            externalUrls: {},
-          });
+              ?.trim() as string
+          );
         }
 
-        let doors: string | undefined = undefined;
-        try {
-          doors = await ticket.$eval(
-            "::-p-xpath(.//div[contains(@class, 'ticket-info')]/div[@class='detail']/div[@itemprop='name']/div[contains(@class, 'popiska')])",
-            (elem) => (elem as HTMLDivElement).innerText.match(/\b(?:doors|vstup)\s+(\d{1,2}:\d{2})/i)?.at(1)
-          );
-        } catch {
-          /* doors time not found */
-        }
+        const artists = artistNames.map((artistName): MusicEventsQueueDataType["event"]["artists"][number] => ({
+          name: artistName,
+          genres: this.#getEnGenreNames(genreName),
+          sameAs: [],
+        }));
 
         const soldOutBox = await ticket.$("div.ticket-info > div.status > div.status-content");
 
-        concertData.push({
+        musicEventData.push({
           name: eventName,
+          url: musicEventUrl,
+          doorTime: doorsDatetime,
+          startDate: startDateTime,
+          endDate: undefined,
           artists,
-          dateTime: {
-            doors,
-            start: startDate,
-            end: undefined,
-          },
           venues: [{ ...venueData }],
-          isOnSale: soldOutBox === null,
+          ticket: {
+            url: musicEventUrl,
+            availability: soldOutBox === null ? ItemAvailability.InStock : ItemAvailability.SoldOut,
+          },
         });
       } catch (e) {
-        this.#logger.error("[" + concertUrl + "]", e);
+        this.#logger.error("[" + musicEventUrl + "]", e);
       }
     }
-    return concertData.map((data) => ({
+    return musicEventData.map((event) => ({
       meta: {
         portal: "ticketportal",
-        eventUrl: concertUrl,
       },
-      event: {
-        name: data.name,
-        artists: data.artists,
-        genres: [{ name: genreName }],
-        dateTime: data.dateTime,
-        venues: data.venues,
-        isOnSale: data.isOnSale,
-        ticketsUrl: concertUrl,
-      },
+      event,
     }));
   }
 
@@ -275,7 +323,7 @@ export class TicketportalService implements ICronJobService {
       await page.locator("button#didomi-notice-learn-more-button").click();
       await page.locator("button#btn-toggle-disagree").click();
 
-      // GET CONCERTS
+      // GET MUSIC EVENTS
       const genreNames = (
         await page.$$eval("::-p-xpath(//nav//div[@id='filterMenu']//div[@id='filter_subkategorie']/label)", (elems) =>
           elems.map((elem) => elem.textContent?.trim())
@@ -298,7 +346,7 @@ export class TicketportalService implements ICronJobService {
           );
 
           for (const panelBlock of panelBlocks) {
-            // show all concerts in this panel block
+            // show all music events in this panel block
             while (true) {
               const nextButton = await panelBlock.$("button#btn-load");
 
@@ -314,28 +362,33 @@ export class TicketportalService implements ICronJobService {
               }
             }
 
-            // get all concert links from the panel block
+            // get all music event links from the panel block
             const newUrls = await panelBlock.$$eval("div.koncert > div.thumbnail > a", (elems) =>
               elems.map((elem) => elem.href)
             );
 
-            // extract concert data and add it to the queue
+            // extract music event data and add it to the queue
             for (const url of newUrls) {
-              const concertPage = await browser.newPage();
+              const musicEventPage = await browser.newPage();
 
               try {
-                if (!(await concertPage.goto(url))) {
+                if (!(await musicEventPage.goto(url))) {
                   throw new Error("Cannot navigate to the URL.");
                 }
 
-                const concerts = await this.#getConcertEvents(concertPage, url, genreName, multipleEventDatesChecker);
-                await this.concertEventsQueue.addBulk(
-                  concerts.map((concert) => ({ name: "ticketportal", data: concert }))
+                const musicEvents = await this.#getMusicEvents(
+                  musicEventPage,
+                  url,
+                  genreName,
+                  multipleEventDatesChecker
+                );
+                await this.musicEventsQueue.addBulk(
+                  musicEvents.map((event) => ({ name: "ticketportal", data: event }))
                 );
               } catch (e) {
                 this.#logger.error("[" + url + "]", e);
               } finally {
-                await concertPage.close();
+                await musicEventPage.close();
               }
             }
           }

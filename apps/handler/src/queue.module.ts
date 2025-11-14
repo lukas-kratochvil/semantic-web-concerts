@@ -1,7 +1,7 @@
 import { BullModule } from "@nestjs/bullmq";
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import { ConcertEventsQueue } from "@semantic-web-concerts/core";
+import { MusicEventsQueue } from "@semantic-web-concerts/core";
 import type { ConfigSchema } from "./config/schema";
 
 @Module({
@@ -16,7 +16,7 @@ import type { ConfigSchema } from "./config/schema";
         },
       }),
     }),
-    BullModule.registerQueue({ name: ConcertEventsQueue.name }),
+    BullModule.registerQueue({ name: MusicEventsQueue.name }),
   ],
   exports: [BullModule],
 })

@@ -2,6 +2,9 @@ import type { IArtist } from "./artist.interface";
 import type { ITicket } from "./ticket.interface";
 import type { IVenue } from "./venue.interface";
 
+/**
+ * The music event.
+ */
 export interface IMusicEvent {
   /**
    * The name.
@@ -24,9 +27,9 @@ export interface IMusicEvent {
   venues: IVenue[];
 
   /**
-   * The datetime or time when the music event opens.
+   * The time admission will commence.
    */
-  doorTime: string;
+  doorTime: Date | undefined;
 
   /**
    * The start date and time of the event in the [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format.
@@ -36,7 +39,7 @@ export interface IMusicEvent {
   /**
    * The end date and time of the event in the [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format.
    */
-  endDate: Date;
+  endDate: Date | undefined;
 
   /**
    * The concert ticket info.

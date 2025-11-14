@@ -76,7 +76,7 @@ export type AccessDate = {
 
 export type StartDate = {
   localDate: string;
-  localTime: string;
+  localTime?: string;
   dateTime?: string;
   dateTBD: boolean;
   dateTBA: boolean;

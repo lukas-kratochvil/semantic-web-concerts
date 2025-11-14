@@ -1,5 +1,5 @@
 /**
- * Artist performing in the `IConcert` music event.
+ * Artist performing in music event.
  */
 export interface IArtist {
   /**

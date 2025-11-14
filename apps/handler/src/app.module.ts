@@ -1,7 +1,7 @@
 import { Logger, Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { loadYamlConfig } from "@semantic-web-concerts/core";
-import { ConcertEventConsumer } from "./concert-event.consumer";
+import { MusicEventConsumer } from "./concert-event.consumer";
 import { configSchema } from "./config/schema";
 import { QueuesModule } from "./queue.module";
 
@@ -15,6 +15,6 @@ import { QueuesModule } from "./queue.module";
     }),
     QueuesModule,
   ],
-  providers: [Logger, ConcertEventConsumer],
+  providers: [Logger, MusicEventConsumer],
 })
 export class AppModule {}

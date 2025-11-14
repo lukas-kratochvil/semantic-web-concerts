@@ -12,17 +12,17 @@ export interface IVenue {
   /**
    * The address.
    */
-  address?: IAddress;
+  address: IAddress | undefined;
 
   /**
    * The latitude of a location.
    */
-  latitude?: string;
+  latitude: string | undefined;
 
   /**
    * The longitude of a location.
    */
-  longitude?: string;
+  longitude: string | undefined;
 
   /**
    * Images of the venue.
