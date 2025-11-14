@@ -177,12 +177,8 @@ export class TicketportalService implements ICronJobService {
     for (const ticket of tickets) {
       try {
         const eventName = await ticket.$eval(".ticket-info > .detail > .event", (elem) =>
-          elem.firstChild?.textContent?.trim()
+          (elem as HTMLElement).innerText.trim()
         );
-
-        if (!eventName) {
-          throw new Error("[" + musicEventUrl + "] - Missing event name.");
-        }
 
         const startDateStr = await ticket.$eval(
           "::-p-xpath(.//div[contains(@class, 'ticket-date')]/div[@class='date']/div[@class='day'])",
@@ -226,14 +222,10 @@ export class TicketportalService implements ICronJobService {
         try {
           venueData = await this.#getVenueData(venueUrl, page.browser());
         } catch {
-          const venueName = await venueBlock.$eval("a.building > span", (elem) => elem.textContent?.trim());
+          const venueName = await venueBlock.$eval("a.building > span", (elem) => elem.innerText.trim());
           const venueCity = await venueBlock.$eval("::-p-xpath(./div[@itemprop='address']//span)", (elem) =>
-            elem.textContent?.trim()
+            (elem as HTMLSpanElement).innerText.trim()
           );
-
-          if (!venueName || !venueCity) {
-            throw new Error("[" + musicEventUrl + "] - Missing venue data.");
-          }
 
           venueData = {
             name: venueName,
@@ -251,7 +243,7 @@ export class TicketportalService implements ICronJobService {
         const artistNames: string[] = [];
 
         if (["Vážná hudba", "Pro děti", "Párty", "Disco"].includes(genreName)) {
-          artistNames.push(genreName);
+          artistNames.push(eventName);
         } else {
           artistNames.push(
             eventName
@@ -319,11 +311,10 @@ export class TicketportalService implements ICronJobService {
       await page.locator("button#btn-toggle-disagree").click();
 
       // GET MUSIC EVENTS
-      const genreNames = (
-        await page.$$eval("::-p-xpath(//nav//div[@id='filterMenu']//div[@id='filter_subkategorie']/label)", (elems) =>
-          elems.map((elem) => elem.textContent?.trim())
-        )
-      ).filter((genreName) => genreName !== undefined);
+      const genreNames = await page.$$eval(
+        "::-p-xpath(//nav//div[@id='filterMenu']//div[@id='filter_subkategorie']/label)",
+        (elems) => elems.map((elem) => (elem as HTMLLabelElement).innerText.trim())
+      );
 
       const multipleEventDatesChecker = new Set<string>();
 
