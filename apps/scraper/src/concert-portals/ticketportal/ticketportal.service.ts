@@ -286,12 +286,7 @@ export class TicketportalService implements ICronJobService {
         this.#logger.error("[" + musicEventUrl + "]", e);
       }
     }
-    return musicEventData.map((event) => ({
-      meta: {
-        portal: "ticketportal",
-      },
-      event,
-    }));
+    return musicEventData.map((event): MusicEventsQueueDataType => ({ event }));
   }
 
   async run() {

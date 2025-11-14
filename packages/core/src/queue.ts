@@ -21,8 +21,5 @@ export type MusicEventsQueueNameType = keyof (typeof MusicEventsQueue)["jobs"];
  * Music events queue job data type.
  */
 export type MusicEventsQueueDataType = {
-  meta: {
-    portal: MusicEventsQueueNameType;
-  };
   event: IMusicEvent;
 };

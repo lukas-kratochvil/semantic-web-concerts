@@ -149,9 +149,6 @@ export class GooutService implements ICronJobService {
       return [anchor.innerText.trim() === "Tickets", anchor.href] as const;
     });
     return {
-      meta: {
-        portal: "goout",
-      },
       event: {
         name: eventName,
         url: musicEventUrl,
