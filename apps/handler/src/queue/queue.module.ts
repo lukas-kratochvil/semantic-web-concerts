@@ -2,7 +2,7 @@ import { BullModule } from "@nestjs/bullmq";
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MusicEventsQueue } from "@semantic-web-concerts/core";
-import type { ConfigSchema } from "./config/schema";
+import type { ConfigSchema } from "../config/schema";
 
 @Module({
   imports: [
@@ -20,4 +20,4 @@ import type { ConfigSchema } from "./config/schema";
   ],
   exports: [BullModule],
 })
-export class QueuesModule {}
+export class QueueModule {}

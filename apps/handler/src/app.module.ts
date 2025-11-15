@@ -1,9 +1,9 @@
 import { Logger, Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { loadYamlConfig } from "@semantic-web-concerts/core";
-import { MusicEventConsumer } from "./concert-event.consumer";
 import { configSchema } from "./config/schema";
-import { QueuesModule } from "./queue.module";
+import { MusicEventConsumer } from "./queue/music-event.consumer";
+import { QueueModule } from "./queue/queue.module";
 
 @Module({
   imports: [
@@ -13,7 +13,7 @@ import { QueuesModule } from "./queue.module";
           loadYamlConfig("config.yaml", configSchema, { nodeEnv: process.env["NODE_ENV"], port: process.env["PORT"] }),
       ],
     }),
-    QueuesModule,
+    QueueModule,
   ],
   providers: [Logger, MusicEventConsumer],
 })

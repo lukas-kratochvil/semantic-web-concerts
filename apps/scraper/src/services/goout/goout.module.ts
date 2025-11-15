@@ -1,10 +1,10 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { QueuesModule } from "../../queue.module";
+import { QueueModule } from "../../queue/queue.module";
 import { GooutService } from "./goout.service";
 
 @Module({
-  imports: [ConfigModule, QueuesModule],
+  imports: [ConfigModule, QueueModule],
   providers: [GooutService],
   exports: [GooutService],
 })
