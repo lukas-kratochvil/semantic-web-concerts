@@ -11,7 +11,7 @@ import { Queue } from "bullmq";
 import { addDays, parse, set } from "date-fns";
 import { launch, type Browser, type Page } from "puppeteer";
 import type { ConfigSchema } from "../../config/schema";
-import type { ICronJobService } from "../cron-job-service.types";
+import type { ICronJobService } from "../../cron/cron-job-service.interface";
 
 @Injectable()
 export class GooutService implements ICronJobService {

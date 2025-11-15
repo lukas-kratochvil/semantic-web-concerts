@@ -2,8 +2,8 @@ import { Logger, Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { ScheduleModule } from "@nestjs/schedule";
 import { loadYamlConfig } from "@semantic-web-concerts/core";
-import { CronManagerModule } from "./concert-portals/cron-manager.module";
 import { configSchema } from "./config/schema";
+import { CronManagerModule } from "./cron/cron-manager.module";
 
 @Module({
   imports: [

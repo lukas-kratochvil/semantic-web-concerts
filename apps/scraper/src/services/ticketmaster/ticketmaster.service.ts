@@ -12,7 +12,7 @@ import { AxiosError } from "axios";
 import type { Queue } from "bullmq";
 import { addDays, max, set } from "date-fns";
 import { catchError, firstValueFrom } from "rxjs";
-import type { ICronJobService } from "../cron-job-service.types";
+import type { ICronJobService } from "../../cron/cron-job-service.interface";
 import { TicketmasterResponse, type Dates } from "./ticketmaster-api.types";
 
 @Injectable()

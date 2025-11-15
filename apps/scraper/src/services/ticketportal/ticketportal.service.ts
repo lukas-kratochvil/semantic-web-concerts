@@ -12,7 +12,7 @@ import type { Queue } from "bullmq";
 import { addDays, format, hoursToMilliseconds, set } from "date-fns";
 import { launch, type Browser, type Page } from "puppeteer";
 import type { ConfigSchema } from "../../config/schema";
-import type { ICronJobService } from "../cron-job-service.types";
+import type { ICronJobService } from "../../cron/cron-job-service.interface";
 
 const CZ_TIMEZONE = "Europe/Prague";
 

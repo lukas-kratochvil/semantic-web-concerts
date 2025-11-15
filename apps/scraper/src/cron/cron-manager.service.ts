@@ -2,7 +2,7 @@ import { Inject, Injectable, Logger } from "@nestjs/common";
 import { Interval, SchedulerRegistry } from "@nestjs/schedule";
 import { minutesToMilliseconds } from "date-fns";
 import { CUSTOM_PROVIDERS } from "../constants";
-import type { ICronJobService } from "./cron-job-service.types";
+import type { ICronJobService } from "./cron-job-service.interface";
 
 @Injectable()
 export class CronManagerService {

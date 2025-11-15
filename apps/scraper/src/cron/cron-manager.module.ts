@@ -1,12 +1,12 @@
 import { Module } from "@nestjs/common";
 import { CUSTOM_PROVIDERS } from "../constants";
+import { GooutModule } from "../services/goout/goout.module";
+import { GooutService } from "../services/goout/goout.service";
+import { TicketmasterModule } from "../services/ticketmaster/ticketmaster.module";
+import { TicketmasterService } from "../services/ticketmaster/ticketmaster.service";
+import { TicketportalModule } from "../services/ticketportal/ticketportal.module";
+import { TicketportalService } from "../services/ticketportal/ticketportal.service";
 import { CronManagerService } from "./cron-manager.service";
-import { GooutModule } from "./goout/goout.module";
-import { GooutService } from "./goout/goout.service";
-import { TicketmasterModule } from "./ticketmaster/ticketmaster.module";
-import { TicketmasterService } from "./ticketmaster/ticketmaster.service";
-import { TicketportalModule } from "./ticketportal/ticketportal.module";
-import { TicketportalService } from "./ticketportal/ticketportal.service";
 
 @Module({
   imports: [GooutModule, TicketmasterModule, TicketportalModule],
