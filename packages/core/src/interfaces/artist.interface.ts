@@ -13,7 +13,7 @@ export interface IArtist {
   sameAs: string[];
 
   /**
-   * Music genres of artist's work.
+   * Names of music genres of artist's work.
    */
   genres: string[];
 

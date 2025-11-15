@@ -1,19 +1,14 @@
 import type { IAddress } from "@semantic-web-concerts/core/interfaces";
-import { IsISO31661Alpha2, IsString } from "class-validator";
-import { RDFClass, RDFProperty } from "../rdf/decorators";
-import { schemaOrg } from "../rdf/vocabulary";
+import { IsISO31661Alpha2, IsOptional, IsString } from "class-validator";
 
-@RDFClass(schemaOrg.PostalAddress)
 export class AddressEntity implements IAddress {
-  @RDFProperty(schemaOrg.addressLocality)
-  @IsString()
-  locality: string;
-
-  @RDFProperty(schemaOrg.addressCountry)
   @IsISO31661Alpha2()
   country: "CZ";
 
-  @RDFProperty(schemaOrg.streetAddress)
   @IsString()
-  street: string;
+  locality: string;
+
+  @IsOptional()
+  @IsString()
+  street: string | undefined;
 }

@@ -1,6 +1,15 @@
 import type { IMusicEvent } from "@semantic-web-concerts/core/interfaces";
 import { Type } from "class-transformer";
-import { Allow, ArrayNotEmpty, ArrayUnique, IsArray, IsString, IsUrl, ValidateNested } from "class-validator";
+import {
+  Allow,
+  ArrayNotEmpty,
+  ArrayUnique,
+  IsArray,
+  IsOptional,
+  IsString,
+  IsUrl,
+  ValidateNested,
+} from "class-validator";
 import { IsDateEqualOrMoreInFutureThan, IsDateMoreInFutureThan, IsFutureDate } from "../validation/decorators";
 import { ArtistEntity } from "./artist.entity";
 import { TicketEntity } from "./ticket.entity";
@@ -27,21 +36,22 @@ export class MusicEventEntity implements IMusicEvent {
   @Type(() => VenueEntity)
   venues: VenueEntity[];
 
-  @Allow() // only to satisfy this rule "@darraghor/nestjs-typed/all-properties-are-whitelisted", because it does not recognize custom validators implemented with class-validator
+  @IsOptional()
   @IsFutureDate()
   @Type(() => Date)
-  doorTime: Date;
+  doorTime: Date | undefined;
 
   @Allow() // only to satisfy this rule "@darraghor/nestjs-typed/all-properties-are-whitelisted", because it does not recognize custom validators implemented with class-validator
   @IsFutureDate()
+  @IsDateEqualOrMoreInFutureThan("doorTime")
   @Type(() => Date)
   startDate: Date;
 
-  @Allow() // only to satisfy this rule "@darraghor/nestjs-typed/all-properties-are-whitelisted", because it does not recognize custom validators implemented with class-validator
+  @IsOptional()
   @IsFutureDate()
   @IsDateMoreInFutureThan("startDate")
   @Type(() => Date)
-  endDate: Date;
+  endDate: Date | undefined;
 
   @ValidateNested()
   @Type(() => TicketEntity)
