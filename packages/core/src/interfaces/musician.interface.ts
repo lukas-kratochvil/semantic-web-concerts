@@ -1,7 +1,7 @@
 /**
- * Artist performing in music event.
+ * Musician performing in music event.
  */
-export interface IArtist {
+export interface IMusician {
   /**
    * The name.
    */
@@ -18,13 +18,13 @@ export interface IArtist {
   genres: string[];
 
   /**
-   * Artist's country of origin.
+   * Musician's country of origin.
    */
-  // TODO: include artist's country?
+  // TODO: include musician's country?
   // country: string | undefined;
 
   /**
-   * Images of the artist.
+   * Images of the musician.
    */
   // TODO: also add images?
   // images: string[];

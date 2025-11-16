@@ -1,7 +1,7 @@
-import type { IArtist } from "@semantic-web-concerts/core/interfaces";
+import type { IMusician } from "@semantic-web-concerts/core/interfaces";
 import { IsArray, ArrayUnique, IsString, IsUrl } from "class-validator";
 
-export class ArtistEntity implements IArtist {
+export class MusicianEntity implements IMusician {
   @IsString()
   name: string;
 

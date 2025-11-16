@@ -1,4 +1,4 @@
-import type { IArtist } from "./artist.interface";
+import type { IMusician } from "./musician.interface";
 import type { ITicket } from "./ticket.interface";
 import type { IVenue } from "./venue.interface";
 
@@ -19,7 +19,7 @@ export interface IMusicEvent {
   /**
    * Artists performing on the concert.
    */
-  artists: IArtist[];
+  artists: IMusician[];
 
   /**
    * Venues where the music event takes place.
