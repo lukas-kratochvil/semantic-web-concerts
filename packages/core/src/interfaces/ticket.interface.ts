@@ -1,10 +1,12 @@
+export const ItemAvailability = {
+  InStock: "InStock",
+  SoldOut: "SoldOut",
+} as const;
+
 /**
  * Possible ticket availability options.
  */
-export enum ItemAvailability {
-  InStock = "InStock",
-  SoldOut = "SoldOut",
-}
+export type ItemAvailability = (typeof ItemAvailability)[keyof typeof ItemAvailability];
 
 /**
  * The ticket offer.

@@ -1,12 +1,11 @@
 import { ItemAvailability, type ITicket } from "@semantic-web-concerts/core/interfaces";
-import { Transform } from "class-transformer";
-import { IsEnum, IsUrl } from "class-validator";
+import { IsIn, IsUrl } from "class-validator";
 
 export class TicketEntity implements ITicket {
   @IsUrl()
   url: string;
 
-  @IsEnum(ItemAvailability)
-  @Transform(({ value }) => ItemAvailability[value as keyof typeof ItemAvailability])
+  // eslint-disable-next-line @darraghor/nestjs-typed/validated-non-primitive-property-needs-type-decorator
+  @IsIn(Object.values(ItemAvailability))
   availability: ItemAvailability;
 }

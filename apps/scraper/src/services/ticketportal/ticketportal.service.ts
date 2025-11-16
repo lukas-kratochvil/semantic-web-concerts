@@ -142,7 +142,7 @@ export class TicketportalService implements ICronJobService {
       const daddr = new URL(mapUrl).searchParams.get("daddr");
 
       if (daddr) {
-        const [latitude, longitude] = daddr.split(",").map((coor) => coor.trim());
+        const [latitude, longitude] = daddr.split(",").map((coor) => +coor);
 
         if (latitude && longitude) {
           venue.latitude = latitude;

@@ -22,18 +22,18 @@ export class MusicEventEntity implements IMusicEvent {
   @IsUrl()
   url: string;
 
+  @Type(() => ArtistEntity)
   @IsArray()
   @ArrayNotEmpty()
   @ArrayUnique<ArtistEntity>((elem) => elem.name)
   @ValidateNested({ each: true })
-  @Type(() => ArtistEntity)
   artists: ArtistEntity[];
 
+  @Type(() => VenueEntity)
   @IsArray()
   @ArrayNotEmpty()
   @ArrayUnique<VenueEntity>((elem) => elem.name)
   @ValidateNested({ each: true })
-  @Type(() => VenueEntity)
   venues: VenueEntity[];
 
   @IsOptional()
@@ -41,19 +41,18 @@ export class MusicEventEntity implements IMusicEvent {
   @Type(() => Date)
   doorTime: Date | undefined;
 
+  @Type(() => Date)
   @Allow() // only to satisfy this rule "@darraghor/nestjs-typed/all-properties-are-whitelisted", because it does not recognize custom validators implemented with class-validator
   @IsFutureDate()
   @IsDateEqualOrMoreInFutureThan("doorTime")
-  @Type(() => Date)
   startDate: Date;
 
   @IsOptional()
   @IsFutureDate()
   @IsDateMoreInFutureThan("startDate")
-  @Type(() => Date)
   endDate: Date | undefined;
 
-  @ValidateNested()
   @Type(() => TicketEntity)
+  @ValidateNested()
   ticket: TicketEntity;
 }

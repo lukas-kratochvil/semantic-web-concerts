@@ -8,19 +8,17 @@ export class VenueEntity implements IVenue {
   name: string;
 
   @ValidateIf((venue: IVenue) => venue.address === undefined || venue.longitude !== undefined)
-  @IsString()
   @IsLatitude()
-  latitude: string | undefined;
+  latitude: number | undefined;
 
   @ValidateIf((venue: IVenue) => venue.address === undefined || venue.latitude !== undefined)
-  @IsString()
   @IsLongitude()
-  longitude: string | undefined;
+  longitude: number | undefined;
 
   @ValidateIf(
     (venue: IVenue) => venue.address !== undefined || venue.latitude === undefined || venue.longitude === undefined
   )
-  @ValidateNested()
   @Type(() => AddressEntity)
+  @ValidateNested()
   address: AddressEntity | undefined;
 }
