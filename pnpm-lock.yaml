@@ -52,6 +52,12 @@ importers:
       joi:
         specifier: ^17.13.3
         version: 17.13.3
+      rdf-namespaces:
+        specifier: ^1.16.0
+        version: 1.16.0
+      reflect-metadata:
+        specifier: ^0.2.2
+        version: 0.2.2
       uuidv7:
         specifier: ^1.0.2
         version: 1.0.2
@@ -2739,6 +2745,9 @@ packages:
   raw-body@3.0.0:
     resolution: {integrity: sha512-RmkhL8CAyCRPXCE28MMH0z2PNWQBNk2Q09ZdxM9IOOXwxwZbN+qbWaatPkdkWIKL2ZVDImrN/pK5HTRz2PcS4g==}
     engines: {node: '>= 0.8'}
+
+  rdf-namespaces@1.16.0:
+    resolution: {integrity: sha512-U0V3syFvDjBtf1kDSCZcv+0dLts9hgz52az3S0UCtqRuVqJGfhrrkOqI59jRKp/xr/ewY3ozjg896r0HrEl42Q==}
 
   readable-stream@2.3.8:
     resolution: {integrity: sha512-8p0AUk4XODgIewSi0l8Epjs+EVnWiK7NoDIEGU0HhE7+ZyY8D1IMY7odu5lRrFXGg71L15KG8QrPmum45RTtdA==}
@@ -5935,6 +5944,8 @@ snapshots:
       http-errors: 2.0.0
       iconv-lite: 0.6.3
       unpipe: 1.0.0
+
+  rdf-namespaces@1.16.0: {}
 
   readable-stream@2.3.8:
     dependencies:

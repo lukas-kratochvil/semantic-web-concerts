@@ -25,6 +25,8 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "joi": "^17.13.3",
+    "rdf-namespaces": "^1.16.0",
+    "reflect-metadata": "^0.2.2",
     "uuidv7": "^1.0.2"
   },
   "devDependencies": {
