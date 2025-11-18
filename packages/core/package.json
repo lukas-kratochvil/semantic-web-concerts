@@ -24,6 +24,11 @@
       "types": "./dist/interfaces/index.d.ts",
       "require": "./dist/interfaces/index.js",
       "default": "./dist/interfaces/index.js"
+    },
+    "./validation": {
+      "types": "./dist/validation/index.d.ts",
+      "require": "./dist/validation/index.js",
+      "default": "./dist/validation/index.js"
     }
   },
   "devDependencies": {
@@ -34,6 +39,7 @@
   "dependencies": {
     "@nestjs/common": "^11.1.2",
     "@semantic-web-concerts/shared": "workspace:*",
+    "class-validator": "^0.14.2",
     "joi": "^17.13.3",
     "js-yaml": "^4.1.0",
     "nest-winston": "^1.10.2",

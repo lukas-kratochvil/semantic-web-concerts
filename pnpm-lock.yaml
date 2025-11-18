@@ -173,6 +173,9 @@ importers:
       '@semantic-web-concerts/shared':
         specifier: workspace:*
         version: link:../shared
+      class-validator:
+        specifier: ^0.14.2
+        version: 0.14.2
       joi:
         specifier: ^17.13.3
         version: 17.13.3
