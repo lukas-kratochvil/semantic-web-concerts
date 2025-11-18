@@ -14,7 +14,8 @@ export const IsFutureDate = (validationOptions?: ValidationOptions) => (object: 
 };
 
 export const IsDateMoreInFutureThan
-  = (comparedProperty: string, validationOptions?: ValidationOptions) => (object: object, propertyName: string) => {
+  = <T extends object>(comparedProperty: keyof T, validationOptions?: ValidationOptions) =>
+  (object: object, propertyName: string) => {
     registerDecorator({
       name: "IsDateMoreInFutureThan",
       target: object.constructor,
@@ -39,7 +40,8 @@ export const IsDateMoreInFutureThan
   };
 
 export const IsDateEqualOrMoreInFutureThan
-  = (comparedProperty: string, validationOptions?: ValidationOptions) => (object: object, propertyName: string) => {
+  = <T extends object>(comparedProperty: keyof T, validationOptions?: ValidationOptions) =>
+  (object: object, propertyName: string) => {
     registerDecorator({
       name: "IsDateEqualOrMoreInFutureThan",
       target: object.constructor,

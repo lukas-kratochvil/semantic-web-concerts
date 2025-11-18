@@ -41,15 +41,15 @@ export class MusicEventEntity implements IMusicEvent {
   doorTime: Date | undefined;
 
   @Type(() => Date)
-  @Allow() // only to satisfy this rule "@darraghor/nestjs-typed/all-properties-are-whitelisted", because it does not recognize custom validators implemented with class-validator
+  @Allow() // only to satisfy "@darraghor/nestjs-typed/all-properties-are-whitelisted" rule, because it does not recognize custom validators implemented with class-validator as class-validator's decorators
   @IsFutureDate()
-  @IsDateEqualOrMoreInFutureThan("doorTime")
+  @IsDateEqualOrMoreInFutureThan<MusicEventEntity>("doorTime")
   startDate: Date;
 
   @Type(() => Date)
   @IsOptional()
   @IsFutureDate()
-  @IsDateMoreInFutureThan("startDate")
+  @IsDateMoreInFutureThan<MusicEventEntity>("startDate")
   endDate: Date | undefined;
 
   @Type(() => TicketEntity)
