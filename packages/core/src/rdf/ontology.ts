@@ -1,6 +1,9 @@
-import type { ItemAvailability } from "@semantic-web-concerts/core/interfaces";
 import { rdf, schema, xsd } from "rdf-namespaces";
+import type { ItemAvailability } from "../interfaces";
 
+/**
+ * RDF prefixes used in the project.
+ */
 export const prefixes = {
   rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
   schema: "http://schema.org/",
@@ -43,6 +46,10 @@ type SchemaProperties = Pick<
   | "streetAddress"
 >;
 
+/**
+ * ItemAvailability enum values subset (they are missing in `rdf-namespaces` package).
+ * @see https://schema.org/ItemAvailability
+ */
 type SchemaItemAvailabilityEnum = {
   [K in ItemAvailability]: `${typeof prefixes.schema}${K}`;
 };
@@ -52,13 +59,19 @@ const schemaItemAvailabilityEnum: SchemaItemAvailabilityEnum = {
   SoldOut: `${prefixes.schema}SoldOut`,
 } as const;
 
-type SchemaOrg = SchemaTypes & SchemaProperties & SchemaItemAvailabilityEnum;
+/**
+ * [Schema.org](https://schema.org/) vocabulary subset used in the project.
+ */
+type SchemaSubset = SchemaTypes & SchemaProperties & SchemaItemAvailabilityEnum;
 
+/**
+ * RDF namespaces used in the project.
+ */
 export const ns = {
   rdf,
   schema: {
     ...schemaItemAvailabilityEnum,
     ...schema,
-  } as SchemaOrg,
+  } as SchemaSubset,
   xsd,
 } satisfies Record<keyof Omit<typeof prefixes, "swc">, object>;

@@ -1,9 +1,3 @@
-import type { IMusicEvent } from "@semantic-web-concerts/core/interfaces";
-import {
-  IsDateEqualOrMoreInFutureThan,
-  IsDateMoreInFutureThan,
-  IsFutureDate,
-} from "@semantic-web-concerts/core/validation";
 import { Type } from "class-transformer";
 import {
   Allow,
@@ -15,8 +9,10 @@ import {
   IsUrl,
   ValidateNested,
 } from "class-validator";
+import type { IMusicEvent } from "../interfaces";
 import { RDFClass, RDFProperty } from "../rdf/decorators";
 import { ns } from "../rdf/ontology";
+import { IsDateEqualOrMoreInFutureThan, IsDateMoreInFutureThan, IsFutureDate } from "../validation";
 import { AbstractEntity } from "./abstract.entity";
 import { ArtistEntity } from "./artist.entity";
 import { TicketEntity } from "./ticket.entity";

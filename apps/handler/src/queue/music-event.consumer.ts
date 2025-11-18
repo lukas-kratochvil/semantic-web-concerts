@@ -2,20 +2,20 @@ import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { Logger } from "@nestjs/common";
 import {
   MusicEventsQueue,
+  plainToEntity,
+  validateEntity,
   type MusicEventsQueueDataType,
   type MusicEventsQueueNameType,
 } from "@semantic-web-concerts/core";
+import { MusicEventEntity } from "@semantic-web-concerts/core/entities";
+import { RdfEntitySerializerService } from "@semantic-web-concerts/core/rdf";
 import type { Job, Worker } from "bullmq";
-import { plainToClass } from "class-transformer";
-import { validate } from "class-validator";
-import { MusicEventEntity } from "../entities/music-event.entity";
-import { RdfEntitySerializer } from "../rdf/rdf-serializer.service";
 
 @Processor(MusicEventsQueue.name)
 export class MusicEventConsumer extends WorkerHost<Worker<MusicEventsQueueDataType, MusicEventsQueueDataType>> {
   #logger = new Logger(MusicEventConsumer.name);
 
-  constructor(private readonly rdfSerializer: RdfEntitySerializer) {
+  constructor(private readonly rdfSerializer: RdfEntitySerializerService) {
     super();
   }
 
@@ -36,16 +36,16 @@ export class MusicEventConsumer extends WorkerHost<Worker<MusicEventsQueueDataTy
   override async process(job: Job<MusicEventsQueueDataType, MusicEventsQueueDataType, MusicEventsQueueNameType>) {
     try {
       // 1) Transform to MusicEventEntity
-      const musicEvent = plainToClass(MusicEventEntity, job.data.event);
+      const musicEvent = plainToEntity(MusicEventEntity, job.data.event);
 
       // 2) Validate MusicEventEntity
-      const validationErrors = await validate(musicEvent);
+      const validationErrors = await validateEntity(musicEvent);
 
       if (validationErrors.length > 0) {
         const validationErrorStr = validationErrors
           .map((error) => `Property ${error.property}: ` + error.toString())
           .join("\n");
-        throw new Error(MusicEventEntity.name + " validation failed:\n" + validationErrorStr);
+        throw new Error(validationErrorStr);
       }
 
       // TODO: step 3) and further steps
@@ -57,7 +57,7 @@ export class MusicEventConsumer extends WorkerHost<Worker<MusicEventsQueueDataTy
       const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
       await job.log(errorMessage);
       this.#logger.error(
-        `Error processing job ${job.id}: ` + errorMessage,
+        `Error processing job ${job.id} [${job.data.event.url}]:\n` + errorMessage,
         error instanceof Error ? error.stack : undefined
       );
       throw error;

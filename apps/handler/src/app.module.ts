@@ -1,10 +1,10 @@
 import { Logger, Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { loadYamlConfig } from "@semantic-web-concerts/core";
+import { RdfEntitySerializerService } from "@semantic-web-concerts/core/rdf";
 import { configSchema } from "./config/schema";
 import { MusicEventConsumer } from "./queue/music-event.consumer";
 import { QueueModule } from "./queue/queue.module";
-import { RdfEntitySerializer } from "./rdf/rdf-serializer.service";
 
 @Module({
   imports: [
@@ -16,6 +16,6 @@ import { RdfEntitySerializer } from "./rdf/rdf-serializer.service";
     }),
     QueueModule,
   ],
-  providers: [Logger, MusicEventConsumer, RdfEntitySerializer],
+  providers: [Logger, MusicEventConsumer, RdfEntitySerializerService],
 })
 export class AppModule {}

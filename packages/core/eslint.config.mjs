@@ -1,3 +1,3 @@
-import { coreConfig } from "@semantic-web-concerts/eslint-config";
+import { nestJsConfig } from "@semantic-web-concerts/eslint-config";
 
-export default coreConfig;
+export default nestJsConfig;

@@ -12,6 +12,10 @@
     "sourceMap": true,
     "composite": true,
     "rootDir": "src",
+    /* For NestJS app */
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false,
     /* Strictness */
     "strict": true, // enables a set of strict type checking options that catch more errors and generally promote better code quality
     "allowUnusedLabels": false, // raises compiler errors about unused labels (label ~ attempt to write an object literal)
@@ -21,7 +25,7 @@
     "noImplicitReturns": true, // ensures all code paths in a function return a value
     "noPropertyAccessFromIndexSignature": true, // warns when accessing unknown object keys
     "noUncheckedIndexedAccess": true, // ensures no unsafe indexing on records and arrays
-    "noUnusedLocals": true,
+    "noUnusedLocals": false, // FIXME: switched to `false` - "rdf-namespaces" package causes many errors because it directly exports TS files which contain unused local variables
     "noUnusedParameters": true,
     /* Other options */
     "skipLibCheck": true, // compiler won't throw compile-time errors on third-party libraries code (But!! It also skips checking our custom `.d.ts` files)

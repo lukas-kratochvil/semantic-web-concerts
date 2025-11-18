@@ -1,5 +1,5 @@
-import { ItemAvailability, type ITicket } from "@semantic-web-concerts/core/interfaces";
 import { IsIn, IsUrl } from "class-validator";
+import { ItemAvailability, type ITicket } from "../interfaces";
 import { RDFClass, RDFProperty } from "../rdf/decorators";
 import { ns } from "../rdf/ontology";
 import { AbstractEntity } from "./abstract.entity";

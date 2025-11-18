@@ -43,27 +43,9 @@ importers:
       bullmq:
         specifier: ^5.56.1
         version: 5.56.1
-      class-transformer:
-        specifier: ^0.5.1
-        version: 0.5.1
-      class-validator:
-        specifier: ^0.14.2
-        version: 0.14.2
       joi:
         specifier: ^17.13.3
         version: 17.13.3
-      n3:
-        specifier: ^1.26.0
-        version: 1.26.0
-      rdf-namespaces:
-        specifier: ^1.16.0
-        version: 1.16.0
-      reflect-metadata:
-        specifier: ^0.2.2
-        version: 0.2.2
-      uuidv7:
-        specifier: ^1.0.2
-        version: 1.0.2
     devDependencies:
       '@nestjs/cli':
         specifier: ^11.0.7
@@ -80,9 +62,6 @@ importers:
       '@swc/core':
         specifier: ^1.11.29
         version: 1.11.29
-      '@types/n3':
-        specifier: ^1.26.1
-        version: 1.26.1
       '@types/node':
         specifier: ^22.15.29
         version: 22.15.29
@@ -173,6 +152,9 @@ importers:
       '@semantic-web-concerts/shared':
         specifier: workspace:*
         version: link:../shared
+      class-transformer:
+        specifier: ^0.5.1
+        version: 0.5.1
       class-validator:
         specifier: ^0.14.2
         version: 0.14.2
@@ -182,9 +164,21 @@ importers:
       js-yaml:
         specifier: ^4.1.0
         version: 4.1.0
+      n3:
+        specifier: ^1.26.0
+        version: 1.26.0
       nest-winston:
         specifier: ^1.10.2
         version: 1.10.2(@nestjs/common@11.1.2(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(winston@3.17.0)
+      rdf-namespaces:
+        specifier: ^1.16.0
+        version: 1.16.0
+      reflect-metadata:
+        specifier: ^0.2.2
+        version: 0.2.2
+      uuidv7:
+        specifier: ^1.0.2
+        version: 1.0.2
       winston:
         specifier: ^3.17.0
         version: 3.17.0
@@ -195,6 +189,9 @@ importers:
       '@types/js-yaml':
         specifier: ^4.0.9
         version: 4.0.9
+      '@types/n3':
+        specifier: ^1.26.1
+        version: 1.26.1
       typescript:
         specifier: ^5.8.3
         version: 5.8.3

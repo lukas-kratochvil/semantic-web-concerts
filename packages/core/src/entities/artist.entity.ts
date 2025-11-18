@@ -1,5 +1,5 @@
-import type { IArtist } from "@semantic-web-concerts/core/interfaces";
 import { IsArray, ArrayUnique, IsString, IsUrl } from "class-validator";
+import type { IArtist } from "../interfaces";
 import { RDFClass, RDFProperty } from "../rdf/decorators";
 import { ns } from "../rdf/ontology";
 import { AbstractEntity } from "./abstract.entity";

@@ -24,7 +24,7 @@
     "noImplicitReturns": true, // ensures all code paths in a function return a value
     "noPropertyAccessFromIndexSignature": true, // warns when accessing unknown object keys
     "noUncheckedIndexedAccess": true, // ensures no unsafe indexing on records and arrays
-    "noUnusedLocals": false, // FIXME: switched to `false` - "rdf-namespaces" package causes many errors because it directly exports TS files which contain unused local variables
+    "noUnusedLocals": true,
     "noUnusedParameters": true,
     /* Other options */
     "skipLibCheck": true, // compiler won't throw compile-time errors on third-party libraries code (But!! It also skips checking our custom `.d.ts` files)

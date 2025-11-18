@@ -1,6 +1,6 @@
-import type { IVenue } from "@semantic-web-concerts/core/interfaces";
 import { Type } from "class-transformer";
 import { IsLatitude, IsLongitude, IsString, ValidateIf, ValidateNested } from "class-validator";
+import type { IVenue } from "../interfaces";
 import { RDFClass, RDFProperty } from "../rdf/decorators";
 import { ns } from "../rdf/ontology";
 import { AbstractEntity } from "./abstract.entity";

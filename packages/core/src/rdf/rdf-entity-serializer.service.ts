@@ -1,13 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { DataFactory, Writer, type MimeFormat, type Quad } from "n3";
-import { AbstractEntity } from "../entities/abstract.entity";
+import { AbstractEntity } from "../entities";
 import { RDF_METADATA_KEYS, type RDFPropertyMetadata } from "./decorators";
 import { ns, prefixes } from "./ontology";
 
 const { quad, literal, namedNode } = DataFactory;
 
 @Injectable()
-export class RdfEntitySerializer {
+export class RdfEntitySerializerService {
   #createEntityIRI(entity: AbstractEntity): string {
     const prefixIRI = Reflect.getMetadata(RDF_METADATA_KEYS.prefixIRI, entity.constructor) as string | undefined;
 

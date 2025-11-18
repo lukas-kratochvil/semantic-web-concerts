@@ -22,13 +22,7 @@
     "@semantic-web-concerts/core": "workspace:*",
     "@semantic-web-concerts/shared": "workspace:*",
     "bullmq": "^5.56.1",
-    "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.2",
-    "joi": "^17.13.3",
-    "n3": "^1.26.0",
-    "rdf-namespaces": "^1.16.0",
-    "reflect-metadata": "^0.2.2",
-    "uuidv7": "^1.0.2"
+    "joi": "^17.13.3"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.7",
@@ -36,7 +30,6 @@
     "@semantic-web-concerts/eslint-config": "workspace:*",
     "@swc/cli": "^0.7.7",
     "@swc/core": "^1.11.29",
-    "@types/n3": "^1.26.1",
     "@types/node": "^22.15.29",
     "typescript": "^5.8.3"
   }

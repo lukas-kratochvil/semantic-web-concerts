@@ -1,22 +1,4 @@
-import "reflect-metadata";
-
-export const RDF_METADATA_KEYS = {
-  class: Symbol("RDF_CLASS"),
-  prefixIRI: Symbol("RDF_PREFIX"),
-  property: Symbol("RDF_PROPERTY"),
-};
-
-export const RDFPrefixIRI = (iriPrefix: string): ClassDecorator => {
-  return (target) => {
-    Reflect.defineMetadata(RDF_METADATA_KEYS.prefixIRI, iriPrefix, target);
-  };
-};
-
-export const RDFClass = (iri: string): ClassDecorator => {
-  return (target) => {
-    Reflect.defineMetadata(RDF_METADATA_KEYS.class, iri, target);
-  };
-};
+import { RDF_METADATA_KEYS } from "./metadata-keys";
 
 type RDFPropertyOptions<TFieldType extends string> =
   | {
