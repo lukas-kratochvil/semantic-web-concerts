@@ -11,11 +11,12 @@ import {
   ValidateNested,
 } from "class-validator";
 import { IsDateEqualOrMoreInFutureThan, IsDateMoreInFutureThan, IsFutureDate } from "../validation/decorators";
+import { AbstractEntity } from "./abstract.entity";
 import { ArtistEntity } from "./artist.entity";
 import { TicketEntity } from "./ticket.entity";
 import { VenueEntity } from "./venue.entity";
 
-export class MusicEventEntity implements IMusicEvent {
+export class MusicEventEntity extends AbstractEntity implements IMusicEvent {
   @IsString()
   name: string;
 

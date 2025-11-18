@@ -1,9 +1,10 @@
 import type { IVenue } from "@semantic-web-concerts/core/interfaces";
 import { Type } from "class-transformer";
 import { IsLatitude, IsLongitude, IsString, ValidateIf, ValidateNested } from "class-validator";
+import { AbstractEntity } from "./abstract.entity";
 import { AddressEntity } from "./address.entity";
 
-export class VenueEntity implements IVenue {
+export class VenueEntity extends AbstractEntity implements IVenue {
   @IsString()
   name: string;
 

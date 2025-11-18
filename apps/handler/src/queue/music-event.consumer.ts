@@ -19,14 +19,14 @@ export class MusicEventConsumer extends WorkerHost<Worker<MusicEventsQueueDataTy
    * 1) Transform to MusicEventEntity
    * 2) Validate MusicEventEntity
    * 3) Check if object already exists in the triple store
-   *    - If doesn't exist, continue with step 4)
-   *    - If exists, check if any property is updated
-   *        - If updated, continue with step 4)
-   *        - If not updated, return without further processing
+   *    1) If doesn't exist, continue with step 4)
+   *    2) If exists, check if any property is updated
+   *        1) If updated, continue with step 4)
+   *        2) If not updated, return without further processing
    * 4) Serialize MusicEventEntity to RDF
    * 5) Store RDF in the triple store
-   *    - If step 3) determined that the object is new, perform an INSERT operation
-   *    - If step 3) determined that the object is updated, perform a DELETE + INSERT operation
+   *    1) If step 3) determined that the object is new, perform an INSERT operation
+   *    2) If step 3) determined that the object is updated, perform a DELETE + INSERT operation
    */
   override async process(job: Job<MusicEventsQueueDataType, MusicEventsQueueDataType, MusicEventsQueueNameType>) {
     try {
