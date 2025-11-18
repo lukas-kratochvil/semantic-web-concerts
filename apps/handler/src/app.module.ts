@@ -4,6 +4,7 @@ import { loadYamlConfig } from "@semantic-web-concerts/core";
 import { configSchema } from "./config/schema";
 import { MusicEventConsumer } from "./queue/music-event.consumer";
 import { QueueModule } from "./queue/queue.module";
+import { RdfEntitySerializer } from "./rdf/rdf-serializer.service";
 
 @Module({
   imports: [
@@ -15,6 +16,6 @@ import { QueueModule } from "./queue/queue.module";
     }),
     QueueModule,
   ],
-  providers: [Logger, MusicEventConsumer],
+  providers: [Logger, MusicEventConsumer, RdfEntitySerializer],
 })
 export class AppModule {}
