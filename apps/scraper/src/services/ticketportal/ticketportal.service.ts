@@ -242,9 +242,7 @@ export class TicketportalService implements ICronJobService {
         // TODO: extract artists (their name and country) from the event name or from the event description
         const artistNames: string[] = [];
 
-        if (["Vážná hudba", "Pro děti", "Párty", "Disco"].includes(genreName)) {
-          artistNames.push(eventName);
-        } else {
+        if (!["Vážná hudba", "Pro děti", "Párty", "Disco"].includes(genreName)) {
           artistNames.push(
             eventName
               .split(/[,:;(-]/)

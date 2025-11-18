@@ -24,7 +24,6 @@ export class MusicEventEntity implements IMusicEvent {
 
   @Type(() => ArtistEntity)
   @IsArray()
-  @ArrayNotEmpty()
   @ArrayUnique<ArtistEntity>((elem) => elem.name)
   @ValidateNested({ each: true })
   artists: ArtistEntity[];
@@ -36,9 +35,9 @@ export class MusicEventEntity implements IMusicEvent {
   @ValidateNested({ each: true })
   venues: VenueEntity[];
 
+  @Type(() => Date)
   @IsOptional()
   @IsFutureDate()
-  @Type(() => Date)
   doorTime: Date | undefined;
 
   @Type(() => Date)
