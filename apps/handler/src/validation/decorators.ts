@@ -23,10 +23,14 @@ export const IsDateMoreInFutureThan
       options: validationOptions,
       validator: {
         validate(value: unknown, args: ValidationArguments) {
+          if (!(value instanceof Date)) {
+            return false;
+          }
+
           const [comparedPropertyName] = args.constraints;
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const comparedValue = (args.object as any)[comparedPropertyName];
-          return value instanceof Date && comparedValue instanceof Date && value.getTime() > comparedValue.getTime();
+          const comparedValue = (args.object as any)[comparedPropertyName] as unknown;
+          return !(comparedValue instanceof Date) || value.getTime() > comparedValue.getTime();
         },
         defaultMessage: (args: ValidationArguments) =>
           `${args.property} must be a Date more in the future than ${args.constraints.at(0)}.`,
@@ -44,10 +48,14 @@ export const IsDateEqualOrMoreInFutureThan
       options: validationOptions,
       validator: {
         validate(value: unknown, args: ValidationArguments) {
+          if (!(value instanceof Date)) {
+            return false;
+          }
+
           const [comparedPropertyName] = args.constraints;
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const comparedValue = (args.object as any)[comparedPropertyName];
-          return value instanceof Date && comparedValue instanceof Date && value.getTime() >= comparedValue.getTime();
+          const comparedValue = (args.object as any)[comparedPropertyName] as unknown;
+          return !(comparedValue instanceof Date) || value.getTime() >= comparedValue.getTime();
         },
         defaultMessage: (args: ValidationArguments) =>
           `${args.property} must be a Date equal to ${args.constraints.at(0)} or more in the future.`,
