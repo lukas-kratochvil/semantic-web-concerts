@@ -6,7 +6,7 @@ import {
   type MusicEventsQueueNameType,
   MusicEventsQueue,
 } from "@semantic-web-concerts/core";
-import { ItemAvailability, type IMusician } from "@semantic-web-concerts/core/interfaces";
+import { ItemAvailability, type IArtist } from "@semantic-web-concerts/core/interfaces";
 import { Queue } from "bullmq";
 import { addDays, parse, set } from "date-fns";
 import { launch, type Browser, type Page } from "puppeteer";
@@ -49,7 +49,7 @@ export class GooutService implements ICronJobService {
     return this.#isInProcess;
   }
 
-  async #getArtist(browser: Browser, artistUrl: string): Promise<IMusician | null> {
+  async #getArtist(browser: Browser, artistUrl: string): Promise<IArtist | null> {
     const artistPage = await browser.newPage();
     let name: string;
     let genres: string[];

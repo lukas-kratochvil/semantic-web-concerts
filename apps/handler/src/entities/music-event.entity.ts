@@ -47,6 +47,7 @@ export class MusicEventEntity implements IMusicEvent {
   @IsDateEqualOrMoreInFutureThan("doorTime")
   startDate: Date;
 
+  @Type(() => Date)
   @IsOptional()
   @IsFutureDate()
   @IsDateMoreInFutureThan("startDate")
