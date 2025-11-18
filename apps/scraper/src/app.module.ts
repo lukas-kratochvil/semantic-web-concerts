@@ -4,6 +4,7 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { loadYamlConfig } from "@semantic-web-concerts/core";
 import { configSchema } from "./config/schema";
 import { CronManagerModule } from "./cron/cron-manager.module";
+import { QueueModule } from "./queue/queue.module";
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { CronManagerModule } from "./cron/cron-manager.module";
     }),
     ScheduleModule.forRoot(),
     CronManagerModule,
+    QueueModule,
   ],
   providers: [Logger],
 })
