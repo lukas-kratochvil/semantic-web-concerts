@@ -7,6 +7,7 @@ import { ns, prefixes } from "./ontology";
 const { literal, namedNode, triple } = DataFactory;
 
 @Injectable()
+// eslint-disable-next-line @darraghor/nestjs-typed/injectable-should-be-provided
 export class RdfEntitySerializerService {
   #createEntityIRI(entity: AbstractEntity): string {
     const prefixIRI = Reflect.getMetadata(RDF_METADATA_KEYS.prefixIRI, entity.constructor) as string | undefined;

@@ -1,12 +1,12 @@
-import { InjectQueue } from "@nestjs/bullmq";
-import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import {
   type MusicEventsQueueDataType,
   type MusicEventsQueueNameType,
   MusicEventsQueue,
-} from "@semantic-web-concerts/core";
-import { ItemAvailability, type IArtist } from "@semantic-web-concerts/core/interfaces";
+} from "@music-event-connect/core";
+import { ItemAvailability, type IArtist } from "@music-event-connect/core/interfaces";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { Queue } from "bullmq";
 import { addDays, parse, set } from "date-fns";
 import { launch, type Browser, type Page } from "puppeteer";

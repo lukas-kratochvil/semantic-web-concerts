@@ -1,5 +1,5 @@
 {
-  "name": "@semantic-web-concerts/shared",
+  "name": "@music-event-connect/shared",
   "private": true,
   "type": "commonjs",
   "scripts": {
@@ -16,7 +16,7 @@
     ".": "./dist/index.js"
   },
   "devDependencies": {
-    "@semantic-web-concerts/eslint-config": "workspace:*",
+    "@music-event-connect/eslint-config": "workspace:*",
     "typescript": "^5.8.3"
   }
 }

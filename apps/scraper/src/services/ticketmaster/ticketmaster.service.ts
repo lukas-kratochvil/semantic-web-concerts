@@ -1,13 +1,13 @@
 import { TZDateMini } from "@date-fns/tz";
-import { HttpService } from "@nestjs/axios";
-import { InjectQueue } from "@nestjs/bullmq";
-import { Injectable, Logger } from "@nestjs/common";
 import {
   type MusicEventsQueueDataType,
   type MusicEventsQueueNameType,
   MusicEventsQueue,
-} from "@semantic-web-concerts/core";
-import { ItemAvailability } from "@semantic-web-concerts/core/interfaces";
+} from "@music-event-connect/core";
+import { ItemAvailability } from "@music-event-connect/core/interfaces";
+import { HttpService } from "@nestjs/axios";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Injectable, Logger } from "@nestjs/common";
 import { AxiosError } from "axios";
 import type { Queue } from "bullmq";
 import { addDays, max, set } from "date-fns";

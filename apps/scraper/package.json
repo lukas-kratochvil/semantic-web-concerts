@@ -15,6 +15,8 @@
   },
   "dependencies": {
     "@date-fns/tz": "^1.4.1",
+    "@music-event-connect/core": "workspace:*",
+    "@music-event-connect/shared": "workspace:*",
     "@nestjs/axios": "^4.0.0",
     "@nestjs/bullmq": "^11.0.2",
     "@nestjs/common": "^11.1.2",
@@ -22,8 +24,6 @@
     "@nestjs/core": "^11.1.2",
     "@nestjs/platform-express": "^11.1.2",
     "@nestjs/schedule": "^6.0.0",
-    "@semantic-web-concerts/core": "workspace:*",
-    "@semantic-web-concerts/shared": "workspace:*",
     "axios": "^1.9.0",
     "bullmq": "^5.56.1",
     "date-fns": "^4.1.0",
@@ -32,9 +32,9 @@
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
+    "@music-event-connect/eslint-config": "workspace:*",
     "@nestjs/cli": "^11.0.7",
     "@nestjs/schematics": "^11.0.5",
-    "@semantic-web-concerts/eslint-config": "workspace:*",
     "@swc/cli": "^0.7.7",
     "@swc/core": "^1.11.29",
     "@types/node": "^22.15.29",

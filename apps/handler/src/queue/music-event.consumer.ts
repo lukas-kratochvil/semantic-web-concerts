@@ -1,14 +1,14 @@
-import { Processor, WorkerHost } from "@nestjs/bullmq";
-import { Logger } from "@nestjs/common";
 import {
   MusicEventsQueue,
   plainToEntity,
   validateEntity,
   type MusicEventsQueueDataType,
   type MusicEventsQueueNameType,
-} from "@semantic-web-concerts/core";
-import { MusicEventEntity } from "@semantic-web-concerts/core/entities";
-import { RdfEntitySerializerService } from "@semantic-web-concerts/core/rdf";
+} from "@music-event-connect/core";
+import { MusicEventEntity } from "@music-event-connect/core/entities";
+import { RdfEntitySerializerService } from "@music-event-connect/core/rdf";
+import { Processor, WorkerHost } from "@nestjs/bullmq";
+import { Logger } from "@nestjs/common";
 import type { Job, Worker } from "bullmq";
 
 @Processor(MusicEventsQueue.name)

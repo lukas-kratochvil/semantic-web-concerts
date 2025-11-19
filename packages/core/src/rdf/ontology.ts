@@ -7,7 +7,7 @@ import type { ItemAvailability } from "../interfaces";
 export const prefixes = {
   rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
   schema: "http://schema.org/",
-  swc: "http://semantic-web-concerts.cz/entity/",
+  mec: "http://music-event-connect.cz/entity/",
   xsd: "http://www.w3.org/2001/XMLSchema#",
 } as const;
 
@@ -74,4 +74,4 @@ export const ns = {
     ...schema,
   } as SchemaSubset,
   xsd,
-} satisfies Record<keyof Omit<typeof prefixes, "swc">, object>;
+} satisfies Record<keyof Omit<typeof prefixes, "mec">, object>;

@@ -1,7 +1,7 @@
+import { loadYamlConfig } from "@music-event-connect/core";
 import { Logger, Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { ScheduleModule } from "@nestjs/schedule";
-import { loadYamlConfig } from "@semantic-web-concerts/core";
 import { configSchema } from "./config/schema";
 import { CronManagerModule } from "./cron/cron-manager.module";
 import { QueueModule } from "./queue/queue.module";

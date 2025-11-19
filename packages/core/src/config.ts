@@ -1,5 +1,5 @@
 import { readFileSync } from "fs";
-import type { ArrayToUnion } from "@semantic-web-concerts/shared";
+import type { ArrayToUnion } from "@music-event-connect/shared";
 import { ObjectSchema } from "joi";
 import { load as loadYaml } from "js-yaml";
 

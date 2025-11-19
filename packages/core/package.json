@@ -1,5 +1,5 @@
 {
-  "name": "@semantic-web-concerts/core",
+  "name": "@music-event-connect/core",
   "private": true,
   "type": "commonjs",
   "scripts": {
@@ -37,14 +37,14 @@
     }
   },
   "devDependencies": {
-    "@semantic-web-concerts/eslint-config": "workspace:*",
+    "@music-event-connect/eslint-config": "workspace:*",
     "@types/js-yaml": "^4.0.9",
     "@types/n3": "^1.26.1",
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@music-event-connect/shared": "workspace:*",
     "@nestjs/common": "^11.1.2",
-    "@semantic-web-concerts/shared": "workspace:*",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "joi": "^17.13.3",

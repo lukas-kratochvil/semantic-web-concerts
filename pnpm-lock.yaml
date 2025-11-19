@@ -19,6 +19,12 @@ importers:
 
   apps/handler:
     dependencies:
+      '@music-event-connect/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@music-event-connect/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@nestjs/bullmq':
         specifier: ^11.0.2
         version: 11.0.2(@nestjs/common@11.1.2(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.2)(bullmq@5.56.1)
@@ -34,12 +40,6 @@ importers:
       '@nestjs/platform-express':
         specifier: ^11.1.2
         version: 11.1.2(@nestjs/common@11.1.2(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.2)
-      '@semantic-web-concerts/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@semantic-web-concerts/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
       bullmq:
         specifier: ^5.56.1
         version: 5.56.1
@@ -47,15 +47,15 @@ importers:
         specifier: ^17.13.3
         version: 17.13.3
     devDependencies:
+      '@music-event-connect/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
       '@nestjs/cli':
         specifier: ^11.0.7
         version: 11.0.7(@swc/cli@0.7.7(@swc/core@1.11.29)(chokidar@4.0.3))(@swc/core@1.11.29)(@types/node@22.15.29)
       '@nestjs/schematics':
         specifier: ^11.0.5
         version: 11.0.5(chokidar@4.0.3)(typescript@5.8.3)
-      '@semantic-web-concerts/eslint-config':
-        specifier: workspace:*
-        version: link:../../packages/eslint-config
       '@swc/cli':
         specifier: ^0.7.7
         version: 0.7.7(@swc/core@1.11.29)(chokidar@4.0.3)
@@ -74,6 +74,12 @@ importers:
       '@date-fns/tz':
         specifier: ^1.4.1
         version: 1.4.1
+      '@music-event-connect/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@music-event-connect/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@nestjs/axios':
         specifier: ^4.0.0
         version: 4.0.0(@nestjs/common@11.1.2(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(axios@1.9.0)(rxjs@7.8.2)
@@ -95,12 +101,6 @@ importers:
       '@nestjs/schedule':
         specifier: ^6.0.0
         version: 6.0.0(@nestjs/common@11.1.2(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.2)
-      '@semantic-web-concerts/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@semantic-web-concerts/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
       axios:
         specifier: ^1.9.0
         version: 1.9.0
@@ -120,15 +120,15 @@ importers:
         specifier: ^7.8.2
         version: 7.8.2
     devDependencies:
+      '@music-event-connect/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
       '@nestjs/cli':
         specifier: ^11.0.7
         version: 11.0.7(@swc/cli@0.7.7(@swc/core@1.11.29)(chokidar@4.0.3))(@swc/core@1.11.29)(@types/node@22.15.29)
       '@nestjs/schematics':
         specifier: ^11.0.5
         version: 11.0.5(chokidar@4.0.3)(typescript@5.8.3)
-      '@semantic-web-concerts/eslint-config':
-        specifier: workspace:*
-        version: link:../../packages/eslint-config
       '@swc/cli':
         specifier: ^0.7.7
         version: 0.7.7(@swc/core@1.11.29)(chokidar@4.0.3)
@@ -146,12 +146,12 @@ importers:
 
   packages/core:
     dependencies:
+      '@music-event-connect/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@nestjs/common':
         specifier: ^11.1.2
         version: 11.1.2(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      '@semantic-web-concerts/shared':
-        specifier: workspace:*
-        version: link:../shared
       class-transformer:
         specifier: ^0.5.1
         version: 0.5.1
@@ -183,7 +183,7 @@ importers:
         specifier: ^3.17.0
         version: 3.17.0
     devDependencies:
-      '@semantic-web-concerts/eslint-config':
+      '@music-event-connect/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
       '@types/js-yaml':
@@ -234,7 +234,7 @@ importers:
 
   packages/shared:
     devDependencies:
-      '@semantic-web-concerts/eslint-config':
+      '@music-event-connect/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
       typescript:

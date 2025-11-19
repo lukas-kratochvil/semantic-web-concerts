@@ -1,3 +1,3 @@
-import { sharedConfig } from "@semantic-web-concerts/eslint-config";
+import { sharedConfig } from "@music-event-connect/eslint-config";
 
 export default sharedConfig;

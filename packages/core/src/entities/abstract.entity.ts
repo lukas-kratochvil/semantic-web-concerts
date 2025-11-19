@@ -3,7 +3,7 @@ import { uuidv7 } from "uuidv7";
 import { RDFPrefixIRI, RDFProperty } from "../rdf/decorators";
 import { ns, prefixes } from "../rdf/ontology";
 
-@RDFPrefixIRI(prefixes.swc)
+@RDFPrefixIRI(prefixes.mec)
 export abstract class AbstractEntity {
   constructor() {
     this.id = uuidv7();

@@ -1,5 +1,5 @@
 {
-  "name": "@semantic-web-concerts/eslint-config",
+  "name": "@music-event-connect/eslint-config",
   "private": true,
   "type": "module",
   "exports": {

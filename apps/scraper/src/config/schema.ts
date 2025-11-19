@@ -1,4 +1,4 @@
-import { ALLOWED_NODE_ENVS, type NodeEnv } from "@semantic-web-concerts/core";
+import { ALLOWED_NODE_ENVS, type NodeEnv } from "@music-event-connect/core";
 import Joi from "joi";
 
 export type ConfigSchema = {
