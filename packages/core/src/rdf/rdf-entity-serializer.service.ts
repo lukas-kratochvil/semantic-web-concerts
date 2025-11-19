@@ -4,7 +4,7 @@ import { AbstractEntity } from "../entities";
 import { RDF_METADATA_KEYS, type RDFPropertyMetadata } from "./decorators";
 import { ns, prefixes } from "./ontology";
 
-const { quad, literal, namedNode } = DataFactory;
+const { literal, namedNode, triple } = DataFactory;
 
 @Injectable()
 export class RdfEntitySerializerService {
@@ -38,7 +38,7 @@ export class RdfEntitySerializerService {
     // Nested object
     if (rdfObject instanceof AbstractEntity) {
       const objectIRI = this.#createEntityIRI(rdfObject);
-      quads.push(quad(namedNode(rdfSubject), namedNode(rdfPredicate), namedNode(objectIRI)));
+      quads.push(triple(namedNode(rdfSubject), namedNode(rdfPredicate), namedNode(objectIRI)));
       this.#serializeRDFClass(rdfObject, objectIRI, quads);
       return;
     }
@@ -51,7 +51,7 @@ export class RdfEntitySerializerService {
         throw new Error(`No mapping for '${rdfObject}' enum value on property '${rdfPredicate}'`);
       }
 
-      quads.push(quad(namedNode(rdfSubject), namedNode(rdfPredicate), namedNode(enumValueIRI)));
+      quads.push(triple(namedNode(rdfSubject), namedNode(rdfPredicate), namedNode(enumValueIRI)));
       return;
     }
 
@@ -68,13 +68,13 @@ export class RdfEntitySerializerService {
     if (options) {
       if (options.discriminator === "datatype") {
         quads.push(
-          quad(namedNode(rdfSubject), namedNode(rdfPredicate), literal(literalValue, namedNode(options.datatype)))
+          triple(namedNode(rdfSubject), namedNode(rdfPredicate), literal(literalValue, namedNode(options.datatype)))
         );
       } else if (options.discriminator === "language") {
-        quads.push(quad(namedNode(rdfSubject), namedNode(rdfPredicate), literal(literalValue, options.language)));
+        quads.push(triple(namedNode(rdfSubject), namedNode(rdfPredicate), literal(literalValue, options.language)));
       }
     } else {
-      quads.push(quad(namedNode(rdfSubject), namedNode(rdfPredicate), literal(literalValue)));
+      quads.push(triple(namedNode(rdfSubject), namedNode(rdfPredicate), literal(literalValue)));
     }
   }
 
@@ -86,7 +86,7 @@ export class RdfEntitySerializerService {
     }
 
     const rdfSubject = subjectIRI ?? this.#createEntityIRI(entity);
-    quads.push(quad(namedNode(rdfSubject), namedNode(ns.rdf.type), namedNode(classIRI)));
+    quads.push(triple(namedNode(rdfSubject), namedNode(ns.rdf.type), namedNode(classIRI)));
 
     for (const [propertyKey, rdfObject] of Object.entries(entity) as [string, unknown][]) {
       if (rdfObject === null || rdfObject === undefined) {
