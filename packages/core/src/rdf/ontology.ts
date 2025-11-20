@@ -1,3 +1,4 @@
+import type { StrictOmit } from "@music-event-connect/shared";
 import { rdf, schema, xsd } from "rdf-namespaces";
 import type { ItemAvailability } from "../interfaces";
 
@@ -74,4 +75,4 @@ export const ns = {
     ...schema,
   } as SchemaSubset,
   xsd,
-} satisfies Record<keyof Omit<typeof prefixes, "mec">, object>;
+} satisfies Record<keyof StrictOmit<typeof prefixes, "mec">, object>;

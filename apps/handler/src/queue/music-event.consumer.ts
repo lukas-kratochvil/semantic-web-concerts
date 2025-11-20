@@ -51,7 +51,7 @@ export class MusicEventConsumer extends WorkerHost<Worker<MusicEventsQueueDataTy
       // TODO: step 3) and further steps
 
       // 4) Serialize MusicEventEntity to RDF
-      const rdfData = await this.rdfSerializer.serialize(musicEvent, "text/n-triples");
+      const rdfData = await this.rdfSerializer.serialize(musicEvent, "application/n-triples");
       return rdfData;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
