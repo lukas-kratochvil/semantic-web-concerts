@@ -9,9 +9,15 @@ services:
     volumes:
       # Database files
       - ./virtuoso/db:/database:rw
+      # Initialization scripts
+      - ./virtuoso/scripts:/import/scripts:ro
+      # Initial RDF data to be loaded
+      - ./rdf-data:/import/data:ro
     environment:
       # Set `dba` user password (also sets `dav` user password if DAV_PASSWORD not set)
       - DBA_PASSWORD=pass123word
+      # Allow Virtuoso to load initial data from custom directory
+      - VIRT_Parameters_DirsAllowed=.,../vad,/usr/share/proj,/import
       # When there is 2 GB of RAM free
       - VIRT_Parameters_NumberOfBuffers=170000
       - VIRT_Parameters_MaxDirtyBuffers=130000
