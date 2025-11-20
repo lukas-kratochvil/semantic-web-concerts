@@ -1,4 +1,22 @@
 services:
+  virtuoso:
+    image: openlink/virtuoso-opensource-7:7
+    ports:
+      # HTTP/SPARQL endpoint
+      - '8890:8890'
+      # iSQL command-line tool
+      - '1111:1111'
+    volumes:
+      # Database files
+      - ./virtuoso/db:/database:rw
+    environment:
+      # Set `dba` user password (also sets `dav` user password if DAV_PASSWORD not set)
+      - DBA_PASSWORD=pass123word
+      # When there is 2 GB of RAM free
+      - VIRT_Parameters_NumberOfBuffers=170000
+      - VIRT_Parameters_MaxDirtyBuffers=130000
+    restart: unless-stopped
+
   redis:
     image: redis:alpine3.22
     restart: unless-stopped
@@ -16,6 +34,7 @@ services:
       - NODE_ENV=development
       - PORT=3040
     depends_on:
+      - virtuoso
       - redis
     restart: unless-stopped
 

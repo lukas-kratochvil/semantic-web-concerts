@@ -1,6 +1,9 @@
 # RDF data
 rdf-data/
 
+# Virtuoso
+virtuoso/db/
+
 # Dependencies
 node_modules
 
