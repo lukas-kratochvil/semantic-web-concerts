@@ -168,7 +168,14 @@ export class GooutService implements ICronJobService {
 
     const getEndDatetime = (value: string) => {
       // `parse` returns an Invalid Date if the date-string cannot be parsed (Invalid Date is a Date, whose time value is NaN.)
-      const date = parse(value, "dd/MM/yyyy", new Date().setHours(0, 0, 0, 0));
+      // en date format
+      let date = parse(value, "dd/MM/yyyy", new Date().setHours(0, 0, 0, 0));
+
+      if (Number.isNaN(date.getTime())) {
+        // cs date format
+        date = parse(value, "d. M. yyyy", new Date().setHours(0, 0, 0, 0));
+      }
+
       return Number.isNaN(date.getTime()) ? undefined : date;
     };
     const startDatetime = new Date(datetime1);
