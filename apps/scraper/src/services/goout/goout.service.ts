@@ -86,7 +86,7 @@ export class GooutService implements ICronJobService {
     const eventName = await page.$eval("h1", (elem) => elem.innerText.trim());
 
     const artistsDivs = await page.$$(
-      "::-p-xpath(//h2[text()='Performing artists']/following-sibling::div[contains(@class, 'row')]/div/div[contains(@class, 'profile-box')]/div[contains(@class, 'content')]/div[1])"
+      "::-p-xpath(//h2[text()='Performing artists' or text()='Vystupující umělci']/following-sibling::div[contains(@class, 'row')]/div/div[contains(@class, 'profile-box')]/div[contains(@class, 'content')]/div[1])"
     );
     const artists = (
       await Promise.all(
@@ -102,7 +102,7 @@ export class GooutService implements ICronJobService {
     let doorsDatetime: Date | undefined;
     try {
       const doorsDatetimeStr = await page.$eval(
-        "::-p-xpath(//section[contains(@class, 'py-1')]//div[contains(@class, 'info-item')]/div/span[text()='Doors']/parent::div/parent::div/div[2]/time)",
+        "::-p-xpath(//section[contains(@class, 'py-1')]//div[contains(@class, 'info-item')]/div/span[text()='Doors' or text()='Vstup']/parent::div/parent::div/div[2]/time)",
         (elem) => elem.getAttribute("datetime")?.trim()
       );
 
@@ -130,13 +130,13 @@ export class GooutService implements ICronJobService {
     const startDatetime = new Date(datetime1);
     const endDatetime = datetime2 ? getEndDatetime(datetime2) : undefined;
 
-    const getVenueSelector = (valueName: string) =>
-      `::-p-xpath(//section[contains(@class, 'py-1')]//div[contains(@class, 'info-item')]/div/span[text()='${valueName}']/parent::div/parent::div/div[2])` as const;
-    const venueName = await page.$eval(getVenueSelector("Venue"), (elem) =>
+    const getVenueSelector = (valueNameEn: string, valueNameCs: string) =>
+      `::-p-xpath(//section[contains(@class, 'py-1')]//div[contains(@class, 'info-item')]/div/span[text()='${valueNameEn}' or text()='${valueNameCs}']/parent::div/parent::div/div[2])` as const;
+    const venueName = await page.$eval(getVenueSelector("Venue", "Místo"), (elem) =>
       (elem as HTMLAnchorElement).innerText.trim()
     );
     const [venueAddress, venueCity] = (
-      await page.$eval(getVenueSelector("Address"), (elem) => (elem as HTMLAnchorElement).innerText)
+      await page.$eval(getVenueSelector("Address", "Adresa"), (elem) => (elem as HTMLAnchorElement).innerText)
     )
       .split(",")
       .map((e) => e.trim());
@@ -150,7 +150,7 @@ export class GooutService implements ICronJobService {
 
     const [isOnSale, ticketsUrl] = await page.$eval(".ticket-button", (elem) => {
       const anchor = elem as HTMLAnchorElement;
-      return [anchor.innerText.trim() === "Tickets", anchor.href] as const;
+      return [["Tickets", "Vstupenky"].includes(anchor.innerText.trim()), anchor.href] as const;
     });
     return {
       event: {
@@ -220,26 +220,29 @@ export class GooutService implements ICronJobService {
         /* cookies not displayed */
       }
 
-      // 2) check that first dropdown menu button has `innerText="Czechia"` otherwise select "Czechia"
-      const country = "Czechia";
+      // 2) check that first dropdown menu button has selected "Czechia" as a country
       const countryButton = await page.$(
-        `::-p-xpath(//button[contains(@class, 'filter-trigger') and contains(text(), '${country}')])`
+        `::-p-xpath(//button[contains(@class, 'filter-trigger') and (contains(text(), 'Czechia') or contains(text(), 'Česko'))])`
       );
 
       if (!countryButton) {
         await page.locator("button.filter-trigger").click();
         await page
-          .locator(`::-p-xpath(//div[contains(@class, 'country-list')]//a[contains(text(), '${country}')])`)
+          .locator(
+            `::-p-xpath(//div[contains(@class, 'country-list')]//a[contains(text(), 'Czechia') or contains(text(), 'Česko')])`
+          )
           .click();
       }
 
-      // 3) set the 'Concerts' category
+      // 3) set the concerts category
       await page
-        .locator("::-p-xpath(//button[contains(@class, 'filter-trigger') and contains(text(), 'All categories')])")
+        .locator(
+          "::-p-xpath(//button[contains(@class, 'filter-trigger') and (contains(text(), 'All categories') or contains(text(), 'Všechny kategorie'))])"
+        )
         .click();
       await page
         .locator(
-          "::-p-xpath(//span[contains(@class, 'categoryFilterItem')]/a/span[contains(@class, 'd-block') and contains(text(), 'Concerts')])"
+          "::-p-xpath(//span[contains(@class, 'categoryFilterItem')]/a/span[contains(@class, 'd-block') and (contains(text(), 'Concerts') or contains(text(), 'Koncerty'))])"
         )
         .click();
 
@@ -248,7 +251,7 @@ export class GooutService implements ICronJobService {
         try {
           // scroll to the "Show more" button
           const showMoreButton = page.locator(
-            "::-p-xpath(//div[contains(@class, 'd-block')]/button[contains(text(), 'Show more')])"
+            "::-p-xpath(//div[contains(@class, 'd-block')]/button[contains(text(), 'Show more') or contains(text(), 'Zobrazit další')])"
           );
           await showMoreButton.scroll();
 

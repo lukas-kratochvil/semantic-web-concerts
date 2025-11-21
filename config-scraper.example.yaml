@@ -7,7 +7,7 @@ ticketmaster:
 
 # GoOut
 goout:
-  # Base URL of the GoOut - english localization
+  # Base URL of the GoOut - cs/en localization
   url:
 
 # Ticketportal
