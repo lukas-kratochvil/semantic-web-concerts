@@ -18,6 +18,9 @@ services:
       - DBA_PASSWORD=pass123word
       # Allow Virtuoso to load initial data from custom directory
       - VIRT_Parameters_DirsAllowed=.,../vad,/usr/share/proj,/import
+      # Uncomment these values for initial data bulk-load (adjust according to available RAM)
+      # - VIRT_Parameters_NumberOfBuffers=300000
+      # - VIRT_Parameters_MaxDirtyBuffers=100000
       # When there is 2 GB of RAM free
       - VIRT_Parameters_NumberOfBuffers=170000
       - VIRT_Parameters_MaxDirtyBuffers=130000
