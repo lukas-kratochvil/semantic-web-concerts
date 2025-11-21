@@ -74,6 +74,43 @@ export class GooutService implements ICronJobService {
       return null;
     }
 
+    genres = genres
+      .map((genre) => {
+        const g = genre.toLocaleLowerCase();
+        switch (g) {
+          case "alternative & indie":
+          case "alternativa & indie":
+            return "alternative music";
+          case "elektronika":
+            return "electronic";
+          case "experimentální":
+            return "experimental";
+          case "filmová hudba":
+            return "film music";
+          case "hip-hop":
+            return "hip hop";
+          case "jam session":
+            return "jam band";
+          case "klasická":
+            return "classical";
+          case "latin music":
+          case "latinskoamerická hudba":
+            return "latin";
+          case "lidová hudba":
+            return "contemporary folk";
+          case "release party":
+          case "křest":
+            return undefined;
+          case "šanson":
+            return "chanson";
+          case "tanec":
+            return "dance";
+          default:
+            return g;
+        }
+      })
+      .filter((genre): genre is string => typeof genre === "string");
+
     await artistPage.close();
     return {
       name,
