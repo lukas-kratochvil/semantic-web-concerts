@@ -49,7 +49,7 @@ export class GooutService implements ICronJobService {
     return this.#isInProcess;
   }
 
-  async #getArtist(browser: Browser, artistUrl: string): Promise<IArtist | null> {
+  async #getArtist(browser: Browser, artistUrl: string, availableGenres: string[]): Promise<IArtist | null> {
     const artistPage = await browser.newPage();
     let name: string;
     let genres: string[];
@@ -69,12 +69,14 @@ export class GooutService implements ICronJobService {
         `::-p-xpath(//section[contains(@class, 'py-4')]/p/span[not(contains(@class, 'tags-title'))]/a)`,
         (elem) => (elem as HTMLAnchorElement[]).map((a) => a.innerText.trim())
       );
-    } catch {
+    } catch (e) {
       await artistPage.close();
+      this.#logger.error("[" + artistUrl + "]", e);
       return null;
     }
 
     genres = genres
+      .filter((genre) => availableGenres.includes(genre))
       .map((genre) => {
         const g = genre.toLocaleLowerCase();
         switch (g) {
@@ -119,7 +121,11 @@ export class GooutService implements ICronJobService {
     };
   }
 
-  async #getMusicEvent(page: Page, musicEventUrl: string): Promise<MusicEventsQueueDataType> {
+  async #getMusicEvent(
+    page: Page,
+    musicEventUrl: string,
+    availableGenres: string[]
+  ): Promise<MusicEventsQueueDataType> {
     const eventName = await page.$eval("h1", (elem) => elem.innerText.trim());
 
     const artistsDivs = await page.$$(
@@ -130,7 +136,8 @@ export class GooutService implements ICronJobService {
         artistsDivs.map(async (artistDiv) =>
           this.#getArtist(
             page.browser(),
-            await artistDiv.$eval("::-p-xpath(./*[1])", (elem) => (elem as HTMLAnchorElement).href)
+            await artistDiv.$eval("::-p-xpath(./*[1])", (elem) => (elem as HTMLAnchorElement).href),
+            availableGenres
           )
         )
       )
@@ -283,6 +290,17 @@ export class GooutService implements ICronJobService {
         )
         .click();
 
+      // 4) get available music genres
+      const genresBtn = page.locator(
+        "::-p-xpath(//button[contains(@class, 'filter-trigger') and (contains(text(), 'Genres') or contains(text(), 'Žánry'))])"
+      );
+      await genresBtn.click(); // open the genres dropdown
+      const availableGenres = await page.$$eval(
+        "::-p-xpath(//div[contains(@class, 'dropdown-menu') and contains(@class, 'show')]/descendant::div[contains(@class, 'tag-columns')]/descendant::input[@type='checkbox' and position()>1])",
+        (elems) => (elems as HTMLInputElement[]).map((elem) => elem.name)
+      );
+      await genresBtn.click(); // close the genres dropdown
+
       // GET MUSIC EVENTS
       while (true) {
         try {
@@ -305,7 +323,7 @@ export class GooutService implements ICronJobService {
                 throw new Error("Cannot navigate to the URL.");
               }
 
-              const musicEvent = await this.#getMusicEvent(musicEventPage, url);
+              const musicEvent = await this.#getMusicEvent(musicEventPage, url, availableGenres);
               await this.musicEventsQueue.add("goout", musicEvent);
             } catch (e) {
               this.#logger.error("[" + url + "]", e);
