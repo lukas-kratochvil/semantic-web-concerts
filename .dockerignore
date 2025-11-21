@@ -1,5 +1,15 @@
+#-----------------------------------------------------------------------------------------------------------------------
+# Specify here which files and directories should be excluded from the build context when creating a Docker image.
+#-----------------------------------------------------------------------------------------------------------------------
+
 # RDF data
 rdf-data/
+
+# Virtuoso
+virtuoso/
+
+# Custom scripts
+scripts/
 
 # Git
 **/.git/
