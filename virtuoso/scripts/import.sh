@@ -10,7 +10,7 @@ ISQL_PORT=1111
 echo "-------------------------------------"
 echo "1. Preparing database..."
 echo "-------------------------------------"
-isql "$ISQL_PORT" dba "$DBA_PASSWORD" < "$HELPER_DIR/prepare.isql"
+isql "$ISQL_PORT" dba "$DBA_PASSWORD" < "$HELPER_DIR/prepare.sql"
 
 echo "-------------------------------------"
 echo "2. Starting parallel load..."
@@ -23,6 +23,6 @@ bash "$HELPER_DIR/run_parallel.sh" $ISQL_PORT $PARALLEL_LOADERS
 echo "-------------------------------------"
 echo "3. Finalizing..."
 echo "-------------------------------------"
-isql "$ISQL_PORT" dba "$DBA_PASSWORD" < "$HELPER_DIR/finalize.isql"
+isql "$ISQL_PORT" dba "$DBA_PASSWORD" < "$HELPER_DIR/finalize.sql"
 
 echo "--- IMPORT FINISHED ---"
