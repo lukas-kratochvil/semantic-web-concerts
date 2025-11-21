@@ -1,3 +1,4 @@
+import { Transform } from "class-transformer";
 import { IsArray, ArrayUnique, IsString, IsUrl } from "class-validator";
 import type { IArtist } from "../interfaces";
 import { RDFClass, RDFProperty } from "../rdf/decorators";
@@ -10,6 +11,7 @@ export class ArtistEntity extends AbstractEntity implements IArtist {
   @RDFProperty(ns.schema.name)
   name: string;
 
+  @Transform(({ value }) => (value as string[]).map((str) => str.toLowerCase()))
   @IsArray()
   @ArrayUnique<string>()
   @RDFProperty(ns.schema.genre, { discriminator: "language", language: "en" })

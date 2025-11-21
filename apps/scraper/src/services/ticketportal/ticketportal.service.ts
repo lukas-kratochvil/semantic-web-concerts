@@ -60,25 +60,26 @@ export class TicketportalService implements ICronJobService {
           .map((genre) => genre.trim())
           .filter((genre) => genre !== "")
           .map((genre) => {
-            switch (genre) {
-              case "Vážná hudba":
+            const g = genre.toLowerCase();
+            switch (g) {
+              case "vážná hudba":
                 return "classical";
-              case "Pro děti":
+              case "pro děti":
                 return "children's music";
-              case "Hard & Heavy":
+              case "hard & heavy":
                 return "heavy metal";
-              case "Folklor":
+              case "folklor":
                 return "traditional folk music";
-              case "Ethno":
+              case "ethno":
                 return "ethnic electronica";
-              case "Párty":
+              case "párty":
                 return "party music";
-              case "Alternativa":
+              case "alternativa":
                 return "alternative music";
-              case "RnB":
+              case "rnb":
                 return "r&b";
               default:
-                return genre.toLowerCase();
+                return g;
             }
           })
       ),
